@@ -2,6 +2,7 @@ language: c
 
 install:
   - sudo apt-get install ocaml
+  - npm install
 
 script:
   - ocaml -vnum

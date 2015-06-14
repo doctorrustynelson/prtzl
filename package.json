@@ -1,0 +1,8 @@
+{
+	"name": "PRTZL",
+	"private": true,
+	"devDependencies": {
+		"grunt": "*",
+		"time-grunt": "*"
+	}
+}
