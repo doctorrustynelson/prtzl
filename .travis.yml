@@ -1,4 +1,10 @@
 language: c
-script: bash -ex build.sh
+
+install:
+  - apt-get install ocaml
+
+script:
+  - ocaml -vnum
+  
 env:
   - OCAML_VERSION=4.02.1 OPAM_VERSION=1.2.2
