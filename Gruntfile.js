@@ -98,6 +98,7 @@ module.exports = function (grunt) {
 	] );
 
 	grunt.registerTask( 'default', [
-		'env'
+		'env',
+		'build'
 	] );
 }
