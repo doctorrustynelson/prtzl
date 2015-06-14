@@ -3,6 +3,8 @@
 	"private": true,
 	"devDependencies": {
 		"grunt": "*",
+		"grunt-contrib-clean": "*",
+		"grunt-contrib-copy": "*",
 		"time-grunt": "*"
 	}
 }
