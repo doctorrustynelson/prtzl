@@ -5,6 +5,3 @@ install:
 
 script:
   - ocaml -vnum
-  
-env:
-  - OCAML_VERSION=4.01.0-5
