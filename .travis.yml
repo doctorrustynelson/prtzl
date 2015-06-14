@@ -1,10 +1,10 @@
 language: c
 
 install:
-  - sudo apt-get install ocaml
+  - sudo apt-get install ocaml=${OCAML_VERSION}
 
 script:
   - ocaml -vnum
   
 env:
-  - OCAML_VERSION=4.02.1 OPAM_VERSION=1.2.2
+  - OCAML_VERSION=4.02.1
