@@ -5,3 +5,5 @@ install:
 
 script:
   - ocaml -vnum
+  - node --version
+  - npm --version
