@@ -1,4 +1,4 @@
-open PRTZL_ast
+open Ast
 
 let ary = Array.make 10 "0"
 (*let hash = Hashtbl.create 100*)
@@ -48,6 +48,9 @@ let ary = Array.make 10 "0"
         | If(e, s1, s2, s3) -> 
           let v = int_of_string (eval e) in 
           exec (if v != 0 then s1 else s3)
+	| While(e, s1) ->
+          let v = int_of_string (eval e) in 
+          (if v != 0 then exec s1 else "skipped")
         (*| Elseif(e, s1) ->
           let v = int_of_string (eval e) in
           exec (if v != 0 then s1)*)
@@ -56,6 +59,6 @@ let ary = Array.make 10 "0"
 
   let _ =
     let lexbuf = Lexing.from_channel stdin in
-    let stmt = PRTZL_parser.stmt PRTZL_scanner.token lexbuf in
+    let stmt = Parser.stmt Scanner.token lexbuf in
     let result = exec stmt in
     print_endline (result)

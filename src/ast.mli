@@ -1,6 +1,8 @@
 type operator = Add | Sub | Mul | Div | Equal | Neq | Less | Leq 
 			  | Greater | Geq | Cancat
 
+(*type datatype = Number | String | Vertex | Edge | Void*)
+
 
 type expr =
        Num of float
@@ -25,6 +27,7 @@ type stmt =
 	 | If of expr * stmt * stmt list * stmt
 	 | Elseif of expr * stmt
 	 | While of expr * stmt
+	 | Return of expr
 
 
 type func_decl = {

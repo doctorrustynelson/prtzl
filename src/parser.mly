@@ -1,8 +1,8 @@
-%{ open PRTZL_ast %}
+%{ open Ast %}
 
 %token PLUS MINUS TIMES DIVIDE EQ NEQ GREATER LESS GEQ LEQ ASSIGN QUOTE CANCAT DOTOPT NOT COMMA
 %token LPAREN RPAREN LINSERT RINSERT LDELETE RDELETE LQUERY RQUERY LBRACKET RBRACKET LBRACE RBRACE
-%token NUMBER STRING VERTEX EDGE LIST IF ELSE ELSEIF ENDIF WHILE DO ENDWHILE EOF
+%token NUMBER STRING VERTEX EDGE LIST IF ELSE ELSEIF ENDIF WHILE DO ENDWHILE RETURN EOF
 %token <float> LITERAL
 %token <string> ID
 %token <string> STR
@@ -13,31 +13,75 @@
 %right ASSIGN
 %left EQ NEQ GREATER LESS GEQ LEQ
 %left PLUS MINUS
-%left TIMES DIVIDE
+%left TIMES DIVIDE CANCAT
 %nonassoc UMINUS NOT
 
 %start stmt
-%type < PRTZL_ast.stmt> stmt
+%type < Ast.stmt> stmt
 
 %%
+
+/*fdecl:
+  NUMBER ID LPAREN arguement_list RPAREN LBRACE vdecl_list stmt_list RBRACE
+  	{ { 
+  		fname   = $2;
+    	formals = List.rev $4;
+    	locals  = List.rev $7;
+    	body    = List.rev $8 } }
+| STRING ID LPAREN arguement_list RPAREN LBRACE vdecl_list stmt_list RBRACE
+  	{ { 
+  		fname   = $2;
+    	formals = List.rev $4;
+    	locals  = List.rev $7;
+    	body    = List.rev $8 } }
+| VERTEX ID LPAREN arguement_list RPAREN LBRACE vdecl_list stmt_list RBRACE
+  	{ { 
+  		fname   = $2;
+    	formals = List.rev $4;
+    	locals  = List.rev $7;
+    	body    = List.rev $8 } }
+| EDGE ID LPAREN arguement_list RPAREN LBRACE vdecl_list stmt_list RBRACE
+  	{ { 
+  		fname   = $2;
+    	formals = List.rev $4;
+    	locals  = List.rev $7;
+    	body    = List.rev $8 } }*/
+
+vdecl_list:
+  /*nothing*/	{ [] }
+| vdecl_list vdecl { $2 :: $1 }
+
+vdecl:
+  NUMBER ID 		{ $2 }
+| STRING ID 		{ $2 }
+| VERTEX ID 		{ $2 }
+| EDGE ID 			{ $2 }
+
+arguement_list:
+  NUMBER ID 		{ [$2] }
+| STRING ID 		{ [$2] }
+| VERTEX ID 		{ [$2] }
+| EDGE ID 			{ [$2] }
+| arguement_list COMMA ID 	{ $3 :: $1 }
 
 stmt_list:
 /* nothing */		{ [] }
 | stmt_list stmt 	{ $2 :: $1 }
 
-elseif_list:
-  /*nothing*/			{ [] }	
+/*elseif_list:										3 rules never reduced
+  nothing			{ [] }	
 | elseif_list elseif	{ $2 :: $1 }
 
 elseif:
-  ELSEIF LPAREN expr RPAREN stmt 		{ Elseif($3, $5) }
+  ELSEIF LPAREN expr RPAREN stmt 		{ Elseif($3, $5) }*/
 
 stmt:
   expr				{ Expr($1) }
 | LBRACE stmt_list RBRACE 	{ Block(List.rev $2) }
 | IF LPAREN expr RPAREN stmt %prec NOELSE ENDIF	{ If($3, $5, [Block([])], Block([]) ) }
 | IF LPAREN expr RPAREN stmt ELSE stmt ENDIF 	{ If($3, $5, [Block([])], $7) }
-| WHILE LPAREN expr RPAREN stmt ENDWHILE 		{ While($3, $5) }
+| WHILE LPAREN expr RPAREN DO stmt ENDWHILE		{ While($3, $6) }
+| RETURN expr 		{ Return($2) }
 
 
 expr:
@@ -51,7 +95,7 @@ expr:
 | expr LEQ    expr 	{ Binop($1, Leq, $3) }
 | expr GREATER expr { Binop($1, Greater, $3) }
 | expr GEQ	  expr 	{ Binop($1, Geq, $3) }
-| MINUS expr %prec UMINUS { Neg($2) }
+/*| MINUS expr %prec UMINUS { Neg($2) }*/  /*shift reduce conflict */
 | NOT expr			{ Not($2) }
 | expr CANCAT expr 	{ Binop($1, Cancat, $3) }
 | LINSERT expr RINSERT { Insert($2) }
@@ -64,13 +108,12 @@ expr:
 | STRING ID ASSIGN expr { Assign($2, $4) }
 | VERTEX ID ASSIGN expr { Assign($2, $4) }
 | LIST ID ASSIGN expr { Assign($2, $4) }
-| ID LBRACKET INT RBRACKET { Mem($1, $3) }
-/*| LIST ID ASSIGN expr 	{ List($4) }*/
+/*| ID LBRACKET INT RBRACKET { Mem($1, $3) }*/  /*shift reduce conflict*/
 /*| LBRACKET RBRACKET { [] }*/
 | LBRACKET list RBRACKET { List(List.rev $2) }
 | LPAREN expr RPAREN { $2 }
-| ID LPAREN list RPAREN { Call($1, $3) }
-| INT 				{ Int($1) } 
+/*| ID LPAREN list RPAREN { Call($1, List.rev $3) }*/  /*shift reduce conflict*/
+/*| INT 				{ Int($1) } */
 | LITERAL		   	{ Num($1) }
 | NUMBER ID 	   	{ Id($2) }					/*Number my_num*/
 | STRING ID	  	   	{ Id($2) }					/*String my_string*/
@@ -86,4 +129,5 @@ list:
 |	LITERAL			{ [Num($1)] }
 |	STR 			{ [Str($1)] }
 | 	list COMMA expr { $3 :: $1 }
+
 

@@ -1,4 +1,4 @@
-{ open PRTZL_parser }
+{ open Parser }
 
 rule token = parse
   [' ' '\t' '\r' '\n'] { token lexbuf }
@@ -21,7 +21,7 @@ rule token = parse
 | "if" { IF }					| "else" { ELSE }
 | "elseif" { ELSEIF }			| "endif" { ENDIF }
 | "while" { WHILE }				| "do" { DO }	
-| "endwhile" { ENDWHILE }
+| "endwhile" { ENDWHILE }			| "return" { RETURN }
 (*| "in" { IN }					| "out" { OUT }
 | "in_degree" { INDEGREE }		| "out_degree" { OUTDEGREE }
 | "to" { TO }					| "from" { FROM }
