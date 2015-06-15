@@ -68,8 +68,8 @@ module.exports = function (grunt) {
 			var command = 'ocamllex ' + file; 
 			exec( command, function( err, stdout, stderr ){
 				grunt.log.writeln( command )
-				grunt.log.writeln( '\tstdout: ' + stdout );
-				grunt.log.writeln( '\tstderr: ' + stderr );
+				grunt.log.writeln( '\tstdout: ' + stdout.split( '\n' ).join( '\n\t\t' ) );
+				grunt.log.writeln( '\tstderr: ' + stderr.split( '\n' ).join( '\n\t\t' ) );
 				completed();
 			} );
 		} );		
@@ -106,8 +106,8 @@ module.exports = function (grunt) {
 			var command = 'ocamlyacc ' + file; 
 			exec( command, function( err, stdout, stderr ){
 				grunt.log.writeln( command )
-				grunt.log.writeln( '\tstdout: ' + stdout );
-				grunt.log.writeln( '\tstderr: ' + stderr );
+				grunt.log.writeln( '\tstdout: ' + stdout.split( '\n' ).join( '\n\t\t' ) );
+				grunt.log.writeln( '\tstderr: ' + stderr.split( '\n' ).join( '\n\t\t' ) );
 				completed();
 			} );
 		} );		
