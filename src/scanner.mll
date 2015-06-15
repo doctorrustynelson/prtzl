@@ -1,13 +1,40 @@
-{ open Parser }
+{ open PRTZL_parser }
 
-rule token = parse 
-	  [' ' '\t' '\r' '\n'] { token lexbuf }
-	| '+' { PLUS }
-	| '-' { MINUS }
-	| '*' { TIMES }
-	| '/' { DIVIDE }
-	| ',' { SEQUENCE }
-	| '=' { ASSIGNMENT }
-	| ['0'-'9']+ as lit { LITERAL( int_of_string lit ) }
-	| '$'['0'-'9'] as lit { VARIABLE(int_of_char lit.[1] - 48) }
-	| eof { EOF }
+rule token = parse
+  [' ' '\t' '\r' '\n'] { token lexbuf }
+| '+' { PLUS }					| '>' { GREATER }
+| '-' { MINUS }					| '<' { LESS }
+| '*' { TIMES }					| "==" { EQ }
+| '/' { DIVIDE }				| "!=" { NEQ }
+| '=' { ASSIGN }				| ">=" { GEQ }
+| '"' { QUOTE }					| "<=" { LEQ }
+| '!' { NOT } 					| ','  { COMMA }
+| '^' { CANCAT }				| '.' { DOTOPT }
+| '(' { LPAREN }				| ')' { RPAREN }
+| '[' { LBRACKET }				| ']' { RBRACKET }
+| '{' { LBRACE }				| '}' { RBRACE }
+| "<+" { LINSERT }				| "+>" { RINSERT }
+| "<_" { LDELETE }				| "_>" { RDELETE }	
+| "<?" { LQUERY }				| "?>" { RQUERY }
+| "Number" { NUMBER }			| "String" { STRING }
+| "Vertex" { VERTEX }			| "Edge" { EDGE }
+| "if" { IF }					| "else" { ELSE }
+| "elseif" { ELSEIF }			| "endif" { ENDIF }
+| "while" { WHILE }				| "do" { DO }	
+| "endwhile" { ENDWHILE }
+(*| "in" { IN }					| "out" { OUT }
+| "in_degree" { INDEGREE }		| "out_degree" { OUTDEGREE }
+| "to" { TO }					| "from" { FROM }
+| "weight" { WEIGHT }*)
+| "List" { LIST }
+| "/*" { comment lexbuf }
+| ['0'-'9']+ as lit { INT(int_of_string lit) } 
+| ['0'-'9']+('.'['0'-'9']+)? as num { LITERAL(float_of_string num) }
+| '"'[^'\n' '"']+'"' as str { STR(str) }
+| ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lit { ID(lit) } 
+| _ as char { raise (Failure("illegal character " ^ Char.escaped char)) }
+| eof { EOF }
+
+and comment = parse
+"*/" { token lexbuf } (* End-of-comment *)
+| _ { comment lexbuf } (* Eat everything else *)
