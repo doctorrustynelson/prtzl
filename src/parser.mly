@@ -22,13 +22,13 @@
 %%
 
 fdecl:
-  NUMBER ID LPAREN arguement_list RPAREN vdecl_list stmt_list
+  NUMBER ID LPAREN arguement_list RPAREN vdecl_list stmt_list 
   	{ { 
   		fname   = $2;
     	formals = List.rev $4;
     	locals  = List.rev $6;
     	body    = List.rev $7 } }
-| STRING ID LPAREN arguement_list RPAREN vdecl_list stmt_list 
+/*| STRING ID LPAREN arguement_list RPAREN vdecl_list stmt_list 
   	{ { 
   		fname   = $2;
     	formals = List.rev $4;
@@ -45,17 +45,17 @@ fdecl:
   		fname   = $2;
     	formals = List.rev $4;
     	locals  = List.rev $6;
-    	body    = List.rev $7 } }
+    	body    = List.rev $7 } }*/
 
 vdecl_list:
   /*nothing*/	{ [] }
 | vdecl_list vdecl { $2 :: $1 }
 
 vdecl:
-  NUMBER ID 		{ $2 }
-| STRING ID 		{ $2 }
-| VERTEX ID 		{ $2 }
-| EDGE ID 			{ $2 }
+  NUMBER ID SEMI		{ $2 }
+/*| STRING ID SEMI		{ $2 }
+| VERTEX ID SEMI		{ $2 }
+| EDGE ID 	SEMI		{ $2 }*/
 
 arguement_list:
                 { [] } 
@@ -63,7 +63,10 @@ arguement_list:
 | STRING ID 		{ [$2] }
 | VERTEX ID 		{ [$2] }
 | EDGE ID 			{ [$2] }
-| arguement_list COMMA ID 	{ $3 :: $1 }
+| arguement_list COMMA NUMBER ID 	 { $4 :: $1 }
+| arguement_list COMMA STRING ID   { $4 :: $1 }
+| arguement_list COMMA VERTEX ID   { $4 :: $1 }
+| arguement_list COMMA EDGE   ID   { $4 :: $1 }
 
 stmt_list:
 /* nothing */		{ [] }
@@ -95,28 +98,27 @@ expr:
 | expr LEQ    expr 	{ Binop($1, Leq, $3) }
 | expr GREATER expr { Binop($1, Greater, $3) }
 | expr GEQ	  expr 	{ Binop($1, Geq, $3) }
-/*| MINUS expr %prec UMINUS { Neg($2) }*/  /*shift reduce conflict */
+| MINUS expr %prec UMINUS { Neg($2) }  
 | NOT expr			{ Not($2) }
 | expr CANCAT expr 	{ Binop($1, Cancat, $3) }
 | LINSERT expr RINSERT { Insert($2) }
 | LDELETE expr RDELETE { Delete($2) }
 | LQUERY expr  RQUERY  { Query($2) }
-/*| QUOTE STR QUOTE  { Str($2) }*/
-| STR 			   	{ Str($1) }
 | ID ASSIGN expr   	{ Assign($1, $3) }
-| NUMBER ID ASSIGN expr { Assign($2, $4) }
+/*| NUMBER ID ASSIGN expr { Assign($2, $4) }*/ /*shift reduce conflict*/
 | STRING ID ASSIGN expr { Assign($2, $4) }
 | VERTEX ID ASSIGN expr { Assign($2, $4) }
 | LIST ID ASSIGN expr { Assign($2, $4) }
-/*| ID LBRACKET INT RBRACKET { Mem($1, $3) }*/  /*shift reduce conflict*/
-/*| LBRACKET RBRACKET { [] }*/
+/*| QUOTE STR QUOTE  { Str($2) }*/
+| ID LBRACKET INT RBRACKET { Mem($1, $3) }  
 | LBRACKET list RBRACKET { List(List.rev $2) }
 | LPAREN expr RPAREN { $2 }
-| ID LPAREN list RPAREN { Call($1, List.rev $3) }  /*shift reduce conflict*/
-/*| INT 				{ Int($1) } */
+| ID LPAREN list RPAREN { Call($1, List.rev $3) }  
+| INT 				{ Int($1) } 
 | LITERAL		   	{ Num($1) }
-| NUMBER ID 	   	{ Id($2) }					/*Number my_num*/
-| STRING ID	  	   	{ Id($2) }					/*String my_string*/
+| STR           { Str($1) }
+/*| NUMBER ID 	   	{ Id($2) }	*/				/*shift reduce conflict*/
+| STRING ID	  	   	{ Id($2) }					
 | VERTEX ID 		{ Id($2) }
 | EDGE ID 			{ Id($2) }
 | LIST ID 			{ Id($2) }
@@ -128,6 +130,6 @@ list:
 |	ID 				{ [Id($1)] }
 |	LITERAL			{ [Num($1)] }
 |	STR 			{ [Str($1)] }
-| 	list COMMA expr { $3 :: $1 }
+| list COMMA expr { $3 :: $1 }
 
 
