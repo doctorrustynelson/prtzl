@@ -12,7 +12,7 @@ rule token = parse
 | '^' { CANCAT }				| '.' { DOTOPT }
 | '(' { LPAREN }				| ')' { RPAREN }
 | '[' { LBRACKET }				| ']' { RBRACKET }
-| '{' { LBRACE }				| '}' { RBRACE }
+(*| '{' { LBRACE }				| '}' { RBRACE }*)
 | "<+" { LINSERT }				| "+>" { RINSERT }
 | "<_" { LDELETE }				| "_>" { RDELETE }	
 | "<?" { LQUERY }				| "?>" { RQUERY }
@@ -21,7 +21,8 @@ rule token = parse
 | "if" { IF }					| "else" { ELSE }
 | "elseif" { ELSEIF }			| "endif" { ENDIF }
 | "while" { WHILE }				| "do" { DO }	
-| "endwhile" { ENDWHILE }			| "return" { RETURN }
+| "endwhile" { ENDWHILE }		| "return" { RETURN }
+| ';' { SEMI }
 (*| "in" { IN }					| "out" { OUT }
 | "in_degree" { INDEGREE }		| "out_degree" { OUTDEGREE }
 | "to" { TO }					| "from" { FROM }

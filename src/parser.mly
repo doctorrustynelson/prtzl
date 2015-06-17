@@ -1,7 +1,7 @@
 %{ open Ast %}
 
-%token PLUS MINUS TIMES DIVIDE EQ NEQ GREATER LESS GEQ LEQ ASSIGN QUOTE CANCAT DOTOPT NOT COMMA
-%token LPAREN RPAREN LINSERT RINSERT LDELETE RDELETE LQUERY RQUERY LBRACKET RBRACKET LBRACE RBRACE
+%token PLUS MINUS TIMES DIVIDE EQ NEQ GREATER LESS GEQ LEQ ASSIGN QUOTE CANCAT DOTOPT NOT COMMA SEMI 
+%token LPAREN RPAREN LINSERT RINSERT LDELETE RDELETE LQUERY RQUERY LBRACKET RBRACKET
 %token NUMBER STRING VERTEX EDGE LIST IF ELSE ELSEIF ENDIF WHILE DO ENDWHILE RETURN EOF
 %token <float> LITERAL
 %token <string> ID
@@ -16,36 +16,36 @@
 %left TIMES DIVIDE CANCAT
 %nonassoc UMINUS NOT
 
-%start stmt
-%type < Ast.stmt> stmt
+%start fdecl
+%type < Ast.fdecl> fdecl
 
 %%
 
-/*fdecl:
-  NUMBER ID LPAREN arguement_list RPAREN LBRACE vdecl_list stmt_list RBRACE
+fdecl:
+  NUMBER ID LPAREN arguement_list RPAREN vdecl_list stmt_list
   	{ { 
   		fname   = $2;
     	formals = List.rev $4;
-    	locals  = List.rev $7;
-    	body    = List.rev $8 } }
-| STRING ID LPAREN arguement_list RPAREN LBRACE vdecl_list stmt_list RBRACE
+    	locals  = List.rev $6;
+    	body    = List.rev $7 } }
+| STRING ID LPAREN arguement_list RPAREN vdecl_list stmt_list 
   	{ { 
   		fname   = $2;
     	formals = List.rev $4;
-    	locals  = List.rev $7;
-    	body    = List.rev $8 } }
-| VERTEX ID LPAREN arguement_list RPAREN LBRACE vdecl_list stmt_list RBRACE
+    	locals  = List.rev $6;
+    	body    = List.rev $7 } }
+| VERTEX ID LPAREN arguement_list RPAREN vdecl_list stmt_list 
   	{ { 
   		fname   = $2;
     	formals = List.rev $4;
-    	locals  = List.rev $7;
-    	body    = List.rev $8 } }
-| EDGE ID LPAREN arguement_list RPAREN LBRACE vdecl_list stmt_list RBRACE
+    	locals  = List.rev $6;
+    	body    = List.rev $7 } }
+| EDGE ID LPAREN arguement_list RPAREN vdecl_list stmt_list 
   	{ { 
   		fname   = $2;
     	formals = List.rev $4;
-    	locals  = List.rev $7;
-    	body    = List.rev $8 } }*/
+    	locals  = List.rev $6;
+    	body    = List.rev $7 } }
 
 vdecl_list:
   /*nothing*/	{ [] }
@@ -58,7 +58,8 @@ vdecl:
 | EDGE ID 			{ $2 }
 
 arguement_list:
-  NUMBER ID 		{ [$2] }
+                { [] } 
+| NUMBER ID 		{ [$2] }
 | STRING ID 		{ [$2] }
 | VERTEX ID 		{ [$2] }
 | EDGE ID 			{ [$2] }
@@ -76,12 +77,11 @@ elseif:
   ELSEIF LPAREN expr RPAREN stmt 		{ Elseif($3, $5) }*/
 
 stmt:
-  expr				{ Expr($1) }
-| LBRACE stmt_list RBRACE 	{ Block(List.rev $2) }
+  expr SEMI				{ Expr($1) }
 | IF LPAREN expr RPAREN stmt %prec NOELSE ENDIF	{ If($3, $5, [Block([])], Block([]) ) }
 | IF LPAREN expr RPAREN stmt ELSE stmt ENDIF 	{ If($3, $5, [Block([])], $7) }
 | WHILE LPAREN expr RPAREN DO stmt ENDWHILE		{ While($3, $6) }
-| RETURN expr 		{ Return($2) }
+| RETURN expr SEMI	{ Return($2) }
 
 
 expr:
@@ -112,7 +112,7 @@ expr:
 /*| LBRACKET RBRACKET { [] }*/
 | LBRACKET list RBRACKET { List(List.rev $2) }
 | LPAREN expr RPAREN { $2 }
-/*| ID LPAREN list RPAREN { Call($1, List.rev $3) }*/  /*shift reduce conflict*/
+| ID LPAREN list RPAREN { Call($1, List.rev $3) }  /*shift reduce conflict*/
 /*| INT 				{ Int($1) } */
 | LITERAL		   	{ Num($1) }
 | NUMBER ID 	   	{ Id($2) }					/*Number my_num*/

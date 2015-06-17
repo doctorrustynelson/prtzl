@@ -30,7 +30,7 @@ type stmt =
 	 | Return of expr
 
 
-type func_decl = {
+type fdecl = {
 		fname : string; (* Name of the function *) 
 		formals : string list; (* Formal argument names *) 
 		locals : string list; (* Locally defined variables *) 
