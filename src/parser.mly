@@ -16,10 +16,16 @@
 %left TIMES DIVIDE CANCAT
 %nonassoc UMINUS NOT
 
-%start fdecl
-%type < Ast.fdecl> fdecl
+%start program
+%type < Ast.program> program
 
 %%
+
+program:
+  /* nothing */   { [], [] }
+| program stmt { ($2 :: fst $1), snd $1 }
+| program fdecl { fst $1, ($2 :: snd $1) }
+
 
 fdecl:
   NUMBER ID LPAREN arguement_list RPAREN vdecl_list stmt_list 
@@ -49,7 +55,7 @@ fdecl:
 
 vdecl_list:
   /*nothing*/	{ [] }
-| vdecl_list vdecl { $2 :: $1 }
+| vdecl_list vdecl { $2 :: $1 }  /*shift reduce conflcit*/
 
 vdecl:
   NUMBER ID SEMI		{ $2 }

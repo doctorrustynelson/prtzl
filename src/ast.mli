@@ -31,9 +31,11 @@ type stmt =
 	 | Return of expr
 
 
-type fdecl = {
+type func_decl = {
 		fname : string; (* Name of the function *) 
 		formals : string list; (* Formal argument names *) 
 		locals : string list; (* Locally defined variables *) 
 		body : stmt list;
 }
+
+type program = stmt list * func_decl list
