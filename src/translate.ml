@@ -1,11 +1,14 @@
 open Ast
+open Ccode
 
 module StringMap = Map.Make(String)
 
 let rec expr = function
-			Str i -> [Str i]
+			Str i -> [Strg i]
 	      | Id s -> [Id s]
 	      | Int i -> [Int i]
+	      | Num n -> [Numb n]
+	      (*| Binop (e1, op, e2) -> [op] @ expr e1 @ expr e2*)
 	      | Keyword k -> [Keyword k]
 
 let rec stmt = function
@@ -16,40 +19,33 @@ let rec stmt = function
 let translate (statements, functions) =
 
 	let translatefunc fdecl =
-	    (*stmt (Block stm) @ *)
-	    stmt (Block fdecl.body) (*@  (* Body *)
+	    [Datatype fdecl.rtype] @ [Id fdecl.fname] @ 
+	    [Keyword "("] @ [Keyword ")\r\n{\r\n"] @
+	    stmt (Block fdecl.body) @ [Keyword "\r\n}\r\n"](*@  (* Body *)
 	    [Ret 0]   (* Default = return 0 *)*)
 	and translatestm stm = 
 		stmt (Block stm)
 
 	in List.concat (List.map translatefunc functions ) @
-	   translatestm statements 
+	   [Main] @ translatestm statements @ [Endmain]
 
-let rec string_of_expr = function
-    Str(l) -> l ^ ";"
-  | Id(s) -> s ^ ";"
-  | Num(n) -> (string_of_float n) ^ ";"
+let rec string_of_ccode = function
+	Main -> "int main() { \r\n"
+  | Endmain -> "\t return 0; \r\n}\r\n"	
+  | Strg(l) -> l ^ ";"
+  | Id(s) -> s
+  | Numb(n) -> (string_of_float n) ^ ";"
   | Int(i) -> (string_of_int i) ^ ";"
   | Keyword(k) -> k
+  | Datatype(t) -> match t with 
+  					Number -> "float "
+  				| 	String -> "string " 
 
-let rec string_of_stmt = function
-    Block(stmts) ->
-      "{\n" ^ String.concat "" (List.map string_of_stmt stmts) ^ "}\n"
-  | Expr(expr) -> string_of_expr expr ^ ";\n"
-  | Return(expr) -> "return " ^ string_of_expr expr ^ ";\n"
-
-let string_of_vdecl id = "int " ^ id ^ ";\n"
-
-let string_of_fdecl fdecl =
-  fdecl.fname ^ "(" ^ String.concat ", " fdecl.formals ^ ")\n{\n" ^
-  String.concat "" (List.map string_of_vdecl fdecl.locals) ^
-  String.concat "" (List.map string_of_stmt fdecl.body) ^
-  "}\n"
+(*let _ =
+  let lexbuf = Lexing.from_channel stdin in
+  let program = Parser.program Scanner.token lexbuf in
+  (*Translate.translate program*)
+  let result = translate program in 
+    (List.iter (fun x -> print_endline (string_of_ccode x)) result)*)
   
 
-
-let _ =
-    let lexbuf = Lexing.from_channel stdin in
-    let program = Parser.program Scanner.token lexbuf in
-    let result = translate program in 
-    (List.iter (fun x -> print_endline (string_of_expr x)) result)

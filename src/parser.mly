@@ -1,8 +1,8 @@
 %{ open Ast %}
 
-%token PLUS MINUS TIMES DIVIDE EQ NEQ GREATER LESS GEQ LEQ ASSIGN QUOTE CANCAT DOTOPT NOT COMMA SEMI 
+%token PLUS MINUS TIMES DIVIDE EQ NEQ GREATER LESS GEQ LEQ ASSIGN QUOTE CONCAT DOTOPT NOT COMMA SEMI 
 %token LPAREN RPAREN LINSERT RINSERT LDELETE RDELETE LQUERY RQUERY LBRACKET RBRACKET
-%token NUMBER STRING VERTEX EDGE LIST IF ELSE ELSEIF ENDIF WHILE DO ENDWHILE RETURN EOF
+%token NUMBER STRING VERTEX EDGE LIST IF ELSE ELSEIF ENDIF WHILE DO ENDWHILE ENDFUNC RETURN EOF
 %token <float> LITERAL
 %token <string> ID
 %token <string> STR
@@ -13,7 +13,7 @@
 %right ASSIGN
 %left EQ NEQ GREATER LESS GEQ LEQ
 %left PLUS MINUS
-%left TIMES DIVIDE CANCAT
+%left TIMES DIVIDE CONCAT
 %nonassoc UMINUS NOT
 
 %start program
@@ -28,8 +28,9 @@ program:
 
 
 fdecl:
-  NUMBER ID LPAREN arguement_list RPAREN vdecl_list stmt_list 
-  	{ { 
+  NUMBER ID LPAREN arguement_list RPAREN vdecl_list stmt_list ENDFUNC
+  	{ {
+      rtype   = Number; 
   		fname   = $2;
     	formals = List.rev $4;
     	locals  = List.rev $6;
@@ -86,7 +87,7 @@ elseif:
   ELSEIF LPAREN expr RPAREN stmt 		{ Elseif($3, $5) }*/
 
 stmt:
-  expr SEMI				{ Expr($1) }
+  expr SEMI			{ Expr($1) }
 | IF LPAREN expr RPAREN stmt %prec NOELSE ENDIF	{ If($3, $5, [Block([])], Block([]) ) }
 | IF LPAREN expr RPAREN stmt ELSE stmt ENDIF 	{ If($3, $5, [Block([])], $7) }
 | WHILE LPAREN expr RPAREN DO stmt ENDWHILE		{ While($3, $6) }
@@ -98,15 +99,15 @@ expr:
 | expr MINUS  expr 	{ Binop($1, Sub, $3) }
 | expr TIMES  expr 	{ Binop($1, Mul, $3) }
 | expr DIVIDE expr 	{ Binop($1, Div, $3) }
-| expr EQ	  expr 	{ Binop($1, Equal, $3) }
+| expr EQ	    expr 	{ Binop($1, Equal, $3) }
 | expr NEQ    expr 	{ Binop($1, Neq, $3) }
 | expr LESS   expr 	{ Binop($1, Less, $3) }
 | expr LEQ    expr 	{ Binop($1, Leq, $3) }
 | expr GREATER expr { Binop($1, Greater, $3) }
 | expr GEQ	  expr 	{ Binop($1, Geq, $3) }
+| expr CONCAT expr 	{ Binop($1, Concat, $3) }
 | MINUS expr %prec UMINUS { Neg($2) }  
-| NOT expr			{ Not($2) }
-| expr CANCAT expr 	{ Binop($1, Cancat, $3) }
+| NOT expr      { Not($2) }
 | LINSERT expr RINSERT { Insert($2) }
 | LDELETE expr RDELETE { Delete($2) }
 | LQUERY expr  RQUERY  { Query($2) }
@@ -115,21 +116,19 @@ expr:
 | STRING ID ASSIGN expr { Assign($2, $4) }
 | VERTEX ID ASSIGN expr { Assign($2, $4) }
 | LIST ID ASSIGN expr { Assign($2, $4) }
-/*| QUOTE STR QUOTE  { Str($2) }*/
-| ID LBRACKET INT RBRACKET { Mem($1, $3) }  
+| ID LBRACKET INT RBRACKET { Mem($1, $3) }
 | LBRACKET list RBRACKET { List(List.rev $2) }
 | LPAREN expr RPAREN { $2 }
-| ID LPAREN list RPAREN { Call($1, List.rev $3) }  
-| INT 				{ Int($1) } 
+| ID LPAREN list RPAREN { Call($1, List.rev $3) } 
+| INT 				  { Int($1) } 
 | LITERAL		   	{ Num($1) }
 | STR           { Str($1) }
 /*| NUMBER ID 	   	{ Id($2) }	*/				/*shift reduce conflict*/
-| STRING ID	  	   	{ Id($2) }					
+| STRING ID	  	{ Id($2) }					
 | VERTEX ID 		{ Id($2) }
 | EDGE ID 			{ Id($2) }
 | LIST ID 			{ Id($2) }
-| ID 			   	{ Id($1) }
-/*| STR 			   { Str($1) }*/
+| ID 			   	  { Id($1) }
 
 list:
 	/*nothing*/		{ [] }

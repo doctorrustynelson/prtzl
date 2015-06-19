@@ -1,7 +1,7 @@
 type operator = Add | Sub | Mul | Div | Equal | Neq | Less | Leq 
-			  | Greater | Geq | Cancat
+			  | Greater | Geq | Concat
 
-(*type datatype = Number | String | Vertex | Edge | Void*)
+type datatype = Number | String | Vertex | Edge | Void
 
 
 type expr =
@@ -32,6 +32,7 @@ type stmt =
 
 
 type func_decl = {
+          rtype : datatype;
 		fname : string; (* Name of the function *) 
 		formals : string list; (* Formal argument names *) 
 		locals : string list; (* Locally defined variables *) 
