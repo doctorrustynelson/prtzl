@@ -19,6 +19,6 @@ void map_put(struct map*, char*, void* );
 
 void* map_get(struct map*, char*);
 
-void map_del(struct map*, char*);
+int map_del(struct map*, char*);
 
 void map_destroy(struct map*);

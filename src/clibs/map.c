@@ -95,7 +95,9 @@ void* map_get(struct map* m, char* key){
 
 }
 
-void map_del(struct map* m, char* key){
+int map_del(struct map* m, char* key){
+
+	int ret = 0;
 
 	int hashd = hash(key);
 
@@ -122,6 +124,8 @@ void map_del(struct map* m, char* key){
 
 				m-> size--;
 
+				ret = 1;
+
 				break;
 			}
 
@@ -131,6 +135,7 @@ void map_del(struct map* m, char* key){
 		} while(ptr->next != NULL);
 	}
 
+	return ret;
 
 }
 
@@ -156,32 +161,33 @@ void map_destroy(struct map* m){
 }
 
 
-int main(){
+// int main(){
 
-	struct map* mymap = map_init();
+// 	struct map* mymap = map_init();
 
-	int thing = 7;
-	map_get(mymap, "candy");
-	map_put(mymap, "candy", &thing);
-	printf("size %d\n", mymap->size);
+// 	int thing = 7;
+// 	map_get(mymap, "candy");
+// 	map_put(mymap, "candy", &thing);
+// 	printf("size %d\n", mymap->size);
 
-	int* myval = (int*) map_get(mymap, "candy");
-	printf("get %d\n", *myval);
+// 	int* myval = (int*) map_get(mymap, "candy");
+// 	printf("get %d\n", *myval);
 
-	int other = 8;
-	map_put(mymap, "candy", &other);
-	printf("size %d\n", mymap->size);
-	myval = (int*) map_get(mymap, "candy");
-	printf("get %d\n", *myval);
+// 	int other = 8;
+// 	map_put(mymap, "candy", &other);
+// 	printf("size %d\n", mymap->size);
+// 	myval = (int*) map_get(mymap, "candy");
+// 	printf("get %d\n", *myval);
 
 
-	map_del(mymap, "candy");
-	printf("size %d\n", mymap->size);
-	printf("contains candy? %d\n", map_get(mymap, "candy") != NULL);
+// 	int del = map_del(mymap, "candy");
+// 	int del2 = map_del(mymap, "candy");
+// 	printf("size %d %d %d\n", mymap->size, del, del2);
+// 	printf("contains candy? %d\n", map_get(mymap, "candy") != NULL);
 
-	map_destroy(mymap);
+// 	map_destroy(mymap);
 
-	printf("destroyed\n");
+// 	printf("destroyed\n");
 
-	return 0;
-}
+// 	return 0;
+// }
