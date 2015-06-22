@@ -49,10 +49,88 @@ module.exports = function (grunt) {
 				src: [ 'parser.cmo', 'scanner.cmo', 'calc.cmo' ],
 				dest: 'compiler.exe'
 			}
+		},
+		
+		compile: {
+			all: {
+				cwd: 'test',
+				src: [ '*' ]
+			}
+		},
+		
+		run: {
+			all: {
+				cwd: 'test',
+				src: [ '*' ]
+			}
+		},
+		
+		file_compare: {
+			hello_out: [ 'test/hello/expected.out', 'test/hello/result.out' ],
+			hello_c: [ 'test/hello/expected.c', 'test/hello/compiled.c' ]
 		}
 	});
 	
-	grunt.resiterMultiTask( 'compile', function( ){
+	grunt.registerMultiTask( 'compile', function( ){
+		var done = this.async( );
+		var success = true;
+		
+		var srcfiles = []
+		
+		this.files.forEach(function(file) {
+			var files = file.src.filter(function (filepath) {
+				// Remove nonexistent files (it's up to you to filter or warn here).
+				if (!grunt.file.exists(file.cwd, filepath)) {
+					grunt.log.warn('Source file "' + filepath + '" not found.');
+					return false;
+				} else {
+					return true;
+				}
+			}).forEach( function( filepath ){
+				srcfiles.push( path.join( file.cwd, filepath ) /*, currently building in place so no dest needed */ );
+			});
+		});
+		
+		var count = srcfiles.length;
+		function completed(){
+			if( ( count -= 1 ) == 0 ){
+				done( success );
+			}
+		}
+		
+		console.log(srcfiles)
+		
+		srcfiles.forEach( function( file ){
+			var command = 'compiler.exe < ' + path.join(file, 'src.prtzl') + ' > ' + path.join(file, 'compiled.c' ); 
+			exec( command, function( err, stdout, stderr ){
+				grunt.log.writeln( command );
+				grunt.log.writeln( '\tstdout: ' + stdout.split( '\n' ).join( '\n\t\t' ) );
+				grunt.log.writeln( '\tstderr: ' + stderr.split( '\n' ).join( '\n\t\t' ) );
+				
+				if( err !== null ){
+					grunt.warn( command + ' exited with error code ' + err.code );
+					success = false;
+					return completed( );
+				}
+				
+				var command = 'gcc -o ' + path.join( file, 'compiled.exe') + ' ' + path.join( file, 'compiled.c'); 
+				exec( command, function( err, stdout, stderr ){
+					grunt.log.writeln( command );
+					grunt.log.writeln( '\tstdout: ' + stdout.split( '\n' ).join( '\n\t\t' ) );
+					grunt.log.writeln( '\tstderr: ' + stderr.split( '\n' ).join( '\n\t\t' ) );
+					
+					if( err !== null ){
+						grunt.warn( command + ' exited with error code ' + err.code );
+						success = false;
+					}
+					
+					completed();
+				} );
+			} );
+		} );		
+	} );
+	
+	grunt.registerMultiTask( 'run', function( ){
 		var done = this.async( );
 		var success = true;
 		
@@ -80,7 +158,7 @@ module.exports = function (grunt) {
 		}
 		
 		srcfiles.forEach( function( file ){
-			var command = 'build/compiler.exe << ' + file + ' >> ' + file + '.c'; 
+			var command = path.join( file, 'compiled.exe' ) + ' > ' + path.join( file, 'result.out' ); 
 			exec( command, function( err, stdout, stderr ){
 				grunt.log.writeln( command );
 				grunt.log.writeln( '\tstdout: ' + stdout.split( '\n' ).join( '\n\t\t' ) );
@@ -89,34 +167,11 @@ module.exports = function (grunt) {
 				if( err !== null ){
 					grunt.warn( command + ' exited with error code ' + err.code );
 					success = false;
-					completed( );
 				}
-				
-				var command = 'gcc -o out.exe ' + file + '.c'; 
-				exec( command, function( err, stdout, stderr ){
-					grunt.log.writeln( command );
-					grunt.log.writeln( '\tstdout: ' + stdout.split( '\n' ).join( '\n\t\t' ) );
-					grunt.log.writeln( '\tstderr: ' + stderr.split( '\n' ).join( '\n\t\t' ) );
-					
-					if( err !== null ){
-						grunt.warn( command + ' exited with error code ' + err.code );
-						success = false;
-					}
-					
-					completed();
-				} );
 				
 				completed();
 			} );
 		} );		
-	} );
-	
-	grunt.registerMultiTask( 'run', function( ){
-		//TODO
-	} );
-	
-	grunt.registerMultiTask( 'testOutput', function( ){
-		//TODO
 	} );
 	
 	grunt.registerMultiTask( 'ocamllex', 'Run Ocamllex.', function( ){
@@ -336,8 +391,9 @@ module.exports = function (grunt) {
 		} );
 	} );
 
+	grunt.loadNpmTasks( 'grunt-file-compare' );
 	grunt.loadNpmTasks( 'grunt-contrib-copy' );
-	grunt.loadNpmTasks('grunt-contrib-clean');
+	grunt.loadNpmTasks( 'grunt-contrib-clean' );
 
 	grunt.registerTask( 'build', [
 		'copy:build',
@@ -346,9 +402,16 @@ module.exports = function (grunt) {
 		'ocamlc_compile:build',
 		'ocamlc_link:build'
 	] );
+	
+	grunt.registerTask( 'test', [
+		'compile:all',
+		'run:all',
+		'file_compare'
+	] );
 
 	grunt.registerTask( 'default', [
 		'env',
-		'build'
+		'build',
+		'test'
 	] );
 }
