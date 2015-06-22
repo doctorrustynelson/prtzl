@@ -47,10 +47,77 @@ module.exports = function (grunt) {
 			build: {
 				cwd: 'build',
 				src: [ 'parser.cmo', 'scanner.cmo', 'calc.cmo' ],
-				dest: 'interp.exe'
+				dest: 'compiler.exe'
 			}
 		}
 	});
+	
+	grunt.resiterMultiTask( 'compile', function( ){
+		var done = this.async( );
+		var success = true;
+		
+		var srcfiles = []
+		
+		this.files.forEach(function(file) {
+			var files = file.src.filter(function (filepath) {
+				// Remove nonexistent files (it's up to you to filter or warn here).
+				if (!grunt.file.exists(file.cwd, filepath)) {
+					grunt.log.warn('Source file "' + filepath + '" not found.');
+					return false;
+				} else {
+					return true;
+				}
+			}).forEach( function( filepath ){
+				srcfiles.push( [ path.join( file.cwd, filepath ) /*, currently building in place so no dest needed */] );
+			});
+		});
+		
+		var count = srcfiles.length;
+		function completed(){
+			if( ( count -= 1 ) == 0 ){
+				done( success );
+			}
+		}
+		
+		srcfiles.forEach( function( file ){
+			var command = 'build/compiler.exe << ' + file + ' >> ' + file + '.c'; 
+			exec( command, function( err, stdout, stderr ){
+				grunt.log.writeln( command );
+				grunt.log.writeln( '\tstdout: ' + stdout.split( '\n' ).join( '\n\t\t' ) );
+				grunt.log.writeln( '\tstderr: ' + stderr.split( '\n' ).join( '\n\t\t' ) );
+				
+				if( err !== null ){
+					grunt.warn( command + ' exited with error code ' + err.code );
+					success = false;
+					completed( );
+				}
+				
+				var command = 'gcc -o out.exe ' + file + '.c'; 
+				exec( command, function( err, stdout, stderr ){
+					grunt.log.writeln( command );
+					grunt.log.writeln( '\tstdout: ' + stdout.split( '\n' ).join( '\n\t\t' ) );
+					grunt.log.writeln( '\tstderr: ' + stderr.split( '\n' ).join( '\n\t\t' ) );
+					
+					if( err !== null ){
+						grunt.warn( command + ' exited with error code ' + err.code );
+						success = false;
+					}
+					
+					completed();
+				} );
+				
+				completed();
+			} );
+		} );		
+	} );
+	
+	grunt.registerMultiTask( 'run', function( ){
+		//TODO
+	} );
+	
+	grunt.registerMultiTask( 'testOutput', function( ){
+		//TODO
+	} );
 	
 	grunt.registerMultiTask( 'ocamllex', 'Run Ocamllex.', function( ){
 		var done = this.async( );
@@ -233,8 +300,6 @@ module.exports = function (grunt) {
 			} );
 		} );		
 	} );
-	
-	// TODO: add test tasks
 	
 	grunt.registerTask( 'env', 'Print Build Environment.', function( ){
 		var done = this.async( );
