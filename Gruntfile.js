@@ -34,11 +34,27 @@ module.exports = function (grunt) {
 				cwd: 'build',
 				src: [ '*.mly' ]
 			}
+		},
+		
+		ocamlc_compile: {
+			build: {
+				cwd: 'build',
+				src: [ 'ast.mli', 'parser.mli', 'scanner.ml', 'parser.ml', 'calc.ml' ]
+			}
+		},
+		
+		ocamlc_link: {
+			build: {
+				cwd: 'build',
+				src: [ 'parser.cmo', 'scanner.cmo', 'calc.cmo' ],
+				dest: 'interp.exe'
+			}
 		}
 	});
 	
 	grunt.registerMultiTask( 'ocamllex', 'Run Ocamllex.', function( ){
 		var done = this.async( );
+		var success = true;
 		
 		var srcfiles = []
 		
@@ -59,7 +75,7 @@ module.exports = function (grunt) {
 		var count = srcfiles.length;
 		function completed(){
 			if( ( count -= 1 ) == 0 ){
-				done( true );
+				done( success );
 			}
 		}
 		
@@ -67,9 +83,15 @@ module.exports = function (grunt) {
 		srcfiles.forEach( function( file ){
 			var command = 'ocamllex ' + file; 
 			exec( command, function( err, stdout, stderr ){
-				grunt.log.writeln( command )
-				grunt.log.writeln( '\tstdout: ' + stdout );
-				grunt.log.writeln( '\tstderr: ' + stderr );
+				grunt.log.writeln( command );
+				grunt.log.writeln( '\tstdout: ' + stdout.split( '\n' ).join( '\n\t\t' ) );
+				grunt.log.writeln( '\tstderr: ' + stderr.split( '\n' ).join( '\n\t\t' ) );
+				
+				if( err !== null ){
+					grunt.warn( command + ' exited with error code ' + err.code );
+					success = false;
+				}
+				
 				completed();
 			} );
 		} );		
@@ -77,6 +99,7 @@ module.exports = function (grunt) {
 	
 	grunt.registerMultiTask( 'ocamlyacc', 'Run Ocamlyacc.', function( ){
 		var done = this.async( );
+		var success = true;
 		
 		var srcfiles = []
 		
@@ -97,7 +120,7 @@ module.exports = function (grunt) {
 		var count = srcfiles.length;
 		function completed(){
 			if( ( count -= 1 ) == 0 ){
-				done( true );
+				done( success );
 			}
 		}
 		
@@ -106,8 +129,106 @@ module.exports = function (grunt) {
 			var command = 'ocamlyacc ' + file; 
 			exec( command, function( err, stdout, stderr ){
 				grunt.log.writeln( command )
-				grunt.log.writeln( '\tstdout: ' + stdout );
-				grunt.log.writeln( '\tstderr: ' + stderr );
+				grunt.log.writeln( '\tstdout: ' + stdout.split( '\n' ).join( '\n\t\t' ) );
+				grunt.log.writeln( '\tstderr: ' + stderr.split( '\n' ).join( '\n\t\t' ) );
+				
+				if( err !== null ){
+					grunt.warn( command + ' exited with error code ' + err.code );
+					success = false;
+				}
+				
+				completed();
+			} );
+		} );		
+	} );
+	
+	grunt.registerMultiTask( 'ocamlc_compile', 'Run Ocamlc compilier.', function( ){
+		var done = this.async( );
+		var success = true;
+		
+		var srcfiles = []
+		
+		this.files.forEach(function(file) {
+			var files = file.src.filter(function (filepath) {
+				// Remove nonexistent files (it's up to you to filter or warn here).
+				if (!grunt.file.exists(file.cwd, filepath)) {
+					grunt.log.warn('Source file "' + filepath + '" not found.');
+					return false;
+				} else {
+					return true;
+				}
+			}).forEach( function( filepath ){
+				srcfiles.push( [ file.cwd, filepath /*, currently building in place so no dest needed */] );
+			});
+		});
+		
+		var count = srcfiles.length;
+		function completed(){
+			if( ( count -= 1 ) == 0 ){
+				done( success );
+			}
+		}
+		
+		
+		srcfiles.forEach( function( file ){
+			var command = 'ocamlc -c ' + file[1]; 
+			exec( command, { cwd: file[0] }, function( err, stdout, stderr ){
+				grunt.log.writeln( command )
+				grunt.log.writeln( '\tstdout: ' + stdout.split( '\n' ).join( '\n\t\t' ) );
+				grunt.log.writeln( '\tstderr: ' + stderr.split( '\n' ).join( '\n\t\t' ) );
+				
+				if( err !== null ){
+					grunt.warn( command + ' exited with error code ' + err.code );
+					success = false;
+				}
+				
+				completed();
+			} );
+		} );		
+	} );
+	
+	grunt.registerMultiTask( 'ocamlc_link', 'Run Ocamlc linker.', function( ){
+		var done = this.async( );
+		var success = true;
+		
+		var srcfiles = []
+		
+		this.files.forEach(function(file) {
+			var files = file.src.filter(function (filepath) {
+				// Remove nonexistent files (it's up to you to filter or warn here).
+				if (!grunt.file.exists(file.cwd, filepath)) {
+					grunt.log.warn('Source file "' + filepath + '" not found.');
+					return false;
+				} else {
+					return true;
+				}
+			}).map( function( filepath ){
+				return path.join( file.cwd, filepath );
+			});
+			
+			srcfiles.push( [files, file.dest] );
+		});
+		
+		var count = srcfiles.length;
+		function completed(){
+			if( ( count -= 1 ) == 0 ){
+				done( success );
+			}
+		}
+		
+		
+		srcfiles.forEach( function( file ){
+			var command = 'ocamlc -o ' + file[1] + ' ' + file[0].join(' '); 
+			exec( command, function( err, stdout, stderr ){
+				grunt.log.writeln( command )
+				grunt.log.writeln( '\tstdout: ' + stdout.split( '\n' ).join( '\n\t\t' ) );
+				grunt.log.writeln( '\tstderr: ' + stderr.split( '\n' ).join( '\n\t\t' ) );
+				
+				if( err !== null ){
+					grunt.warn( command + ' exited with error code ' + err.code );
+					success = false;
+				}
+				
 				completed();
 			} );
 		} );		
@@ -156,7 +277,9 @@ module.exports = function (grunt) {
 	grunt.registerTask( 'build', [
 		'copy:build',
 		'ocamllex:build',
-		'ocamlyacc:build'
+		'ocamlyacc:build',
+		'ocamlc_compile:build',
+		'ocamlc_link:build'
 	] );
 
 	grunt.registerTask( 'default', [
