@@ -14,12 +14,33 @@ struct graph* init_graph(){
 
 }
 
+struct node* _init_vertex(char* label){
+
+	struct node* ret = (struct node*) malloc(sizeof(struct node));
+
+	ret->properties = map_init();
+	put_node_property(ret, "label", label);
+
+	struct list* in = list_init();
+	struct list* out = list_init();
+
+	double* in_degree = (double*) malloc(sizeof(double));
+	*in_degree = 0;
+	
+	double* out_degree = (double*) malloc(sizeof(double));
+	*out_degree = 0;
+
+	put_node_property(ret, "in", in);
+	put_node_property(ret, "out", out);
+	put_node_property(ret, "in_degree", in_degree);
+	put_node_property(ret, "out_degree", out_degree);
+
+	return ret;
+}
+
 struct node* insert_vertex(struct graph* g, char* label){
 
-	struct node* new_vert = (struct node*) malloc(sizeof(struct node));
-
-	new_vert->properties = map_init();
-	put_node_property(new_vert, "label", label);
+	struct node* new_vert = _init_vertex(label);
 
 	map_put(g->vertices, label, new_vert);
 
@@ -33,9 +54,13 @@ struct node* query_vertex(struct graph* g, char* label){
 
 }
 
-int delete_vertex(struct graph* g, char* label){
+struct node* _destroy_vertex(){
+	//TODO fix big memory leaks from node property map
+}
 
-	return map_del(g->vertices, label);
+double delete_vertex(struct graph* g, char* label){
+
+	return (double) map_del(g->vertices, label);
 
 }
 
@@ -51,23 +76,48 @@ void* get_node_property(struct node* v, char* key){
 
 }
 
-int main(){
+struct node* _init_edge(struct node* src, struct node* dest, double weight){
 
-	struct graph* g = init_graph();
+	struct node* ret = (struct node*) malloc(sizeof(struct node));
+	ret->properties = map_init();
 
-	struct node* omaha = insert_vertex(g, "omaha");
+	put_node_property(ret, "src", src);
+	put_node_property(ret, "dest", dest);
 
-	struct node* queried = query_vertex(g, "omaha");
+	double* w = (double*) malloc(sizeof(double));
+	*w = weight;
+	put_node_property(ret, "weight", w);
 
-	printf("%p %s %p %s\n",
-		omaha, (char*) get_node_property(omaha, "label"),
-		queried, (char*) get_node_property(queried, "label"));
+	return ret;
 
-	int res = delete_vertex(g, "omaha");
+}
 
-	printf("%d\n", res);
+double link(struct node* src, struct node* dest, double weight){
 
-	return 0;
+	struct node* new_edge = _init_edge(src, dest, weight);
+
+	struct list* src_out = get_node_property(src, "out");
+	list_add(src_out, new_edge);
+
+	double* src_out_deg = get_node_property(src, "out_degree");
+	(*src_out_deg)++;
+
+	struct list* dest_in = get_node_property(dest, "in");
+	list_add(dest_in, new_edge);
+
+	double* dest_in_deg = get_node_property(dest, "in_degree");
+	(*dest_in_deg)++;
+
+	return 1;
+
+}
+
+double bi_link(struct node* src, struct node* dest, double weight){
+
+	link(src, dest, weight);
+	link(dest, src, weight);
+
+	return 1;
 
 }
 

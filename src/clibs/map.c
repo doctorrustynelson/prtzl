@@ -6,7 +6,7 @@
 #include "map.h"
 
 int hash(char* key){
-	return strlen(key) * 17 % MAP_BUCKETS;
+	return (strlen(key) * 17) % MAP_BUCKETS;
 }
 
 struct map* map_init(){
@@ -58,7 +58,7 @@ void map_put(struct map* m, char* key, void* value){
 
 	}
 
-	m->size++;
+	(m->size)++;
 
 }
 
@@ -88,7 +88,7 @@ void* map_get(struct map* m, char* key){
 
 			ptr = ptr->next;
 
-		} while(ptr->next != NULL);
+		} while(ptr != NULL);
 	}
 
 	return (ret == NULL) ? NULL : ret->value;
@@ -117,7 +117,7 @@ int map_del(struct map* m, char* key){
 				}
 				//this is list head, need to update map struct
 				else{
-					m->buckets[hashd] = NULL;
+					m->buckets[hashd] = ptr->next;
 				}
 
 				free(ptr);
@@ -132,7 +132,7 @@ int map_del(struct map* m, char* key){
 			last = ptr;
 			ptr = ptr->next;
 
-		} while(ptr->next != NULL);
+		} while(ptr != NULL);
 	}
 
 	return ret;
@@ -168,6 +168,9 @@ void map_destroy(struct map* m){
 // 	int thing = 7;
 // 	map_get(mymap, "candy");
 // 	map_put(mymap, "candy", &thing);
+// 	map_put(mymap, "a", &thing);
+// 	map_put(mymap, "b", &thing);
+// 	map_put(mymap, "c", &thing);
 // 	printf("size %d\n", mymap->size);
 
 // 	int* myval = (int*) map_get(mymap, "candy");
