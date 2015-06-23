@@ -12,10 +12,11 @@ type cstmt =
 | 	Not of cstmt list
 | 	Neg of cstmt list
 |  	Call of string * cstmt list 
-|   List of cstmt list
+|   List of string * cstmt list
 |  	If of cstmt list
 |  	Then of cstmt list
 | 	Else of cstmt list
+|   While of cstmt list * cstmt list 
 
 type prog = {
 	text : cstmt array;

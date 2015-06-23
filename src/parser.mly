@@ -62,15 +62,15 @@ vdecl_list:
 
 vdecl:
   NUMBER ID SEMI    { {vtype=Number; vname=$2; value=Assign($2, Num(0.))} }
-| STRING ID SEMI    { {vtype=String; vname=$2; value=Assign($2, Str(""))} }
+| STRING ID SEMI    { {vtype=String; vname=$2; value=Assign($2, Noexpr )} }
 | VERTEX ID SEMI    { {vtype=Vertex; vname=$2; value=Assign($2, Str(""))} }
 | EDGE ID   SEMI    { {vtype=  Edge; vname=$2; value=Assign($2, Str(""))} }
-/*| LIST ID   SEMI    { {vtype=  List; vname=$2; value=Assign($2, Str(""))} }*/
+| LIST ID   SEMI    { {vtype=  List; vname=$2; value=Assign($2, Str("list_init()"))} }
 | NUMBER ID ASSIGN expr SEMI { {vtype=Number; vname=$2; value=Assign($2, $4)} }
 | STRING ID ASSIGN expr SEMI { {vtype=String; vname=$2; value=Assign($2, $4)} }
 | VERTEX ID ASSIGN expr SEMI { {vtype=Vertex; vname=$2; value=Assign($2, $4)} }
 | EDGE   ID ASSIGN expr SEMI { {vtype=  Edge; vname=$2; value=Assign($2, $4)} }
-/*| LIST ID ASSIGN   expr SEMI { Assign($2, $4) }*/
+| LIST   ID ASSIGN expr SEMI { {vtype=  List; vname=$2; value=Assign($2, $4)} }
 
 arguement_list:
                 { [] } 

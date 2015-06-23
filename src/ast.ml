@@ -1,7 +1,7 @@
 type operator = Add | Sub | Mul | Div | Equal | Neq | Less | Leq 
 			  | Greater | Geq | Concat
 
-type datatype = Number | String | Vertex | Edge | Void
+type datatype = Number | String | Vertex | Edge | Void | List
 
 
 type expr =
@@ -20,6 +20,7 @@ type expr =
      | Mem of string * int 
      | Call of string * expr list
      | Keyword of string
+     | Noexpr
 
 
 
