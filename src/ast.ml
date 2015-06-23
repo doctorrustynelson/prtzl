@@ -22,6 +22,7 @@ type expr =
      | Keyword of string
 
 
+
 type stmt = 
 	   Block of stmt list
 	 | Expr of expr
@@ -31,12 +32,19 @@ type stmt =
 	 | Return of expr
 
 
+
+type vdecl = {
+          vtype : datatype;
+          vname : string;
+          value : expr;
+}
+
 type func_decl = {
           rtype : datatype;
 		fname : string; (* Name of the function *) 
 		formals : string list; (* Formal argument names *) 
-		locals : string list; (* Locally defined variables *) 
+		locals : vdecl list; (* Locally defined variables *) 
 		body : stmt list;
 }
 
-type program = stmt list * func_decl list
+type program = vdecl list * stmt list * func_decl list

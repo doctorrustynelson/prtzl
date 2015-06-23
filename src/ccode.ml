@@ -7,6 +7,15 @@ type cstmt =
 |   Main	
 | 	Endmain 
 | 	Datatype of Ast.datatype
+| 	Binop	of Ast.operator
+|   Assign of string * cstmt list
+| 	Not of cstmt list
+| 	Neg of cstmt list
+|  	Call of string * cstmt list 
+|   List of cstmt list
+|  	If of cstmt list
+|  	Then of cstmt list
+| 	Else of cstmt list
 
 type prog = {
 	text : cstmt array;

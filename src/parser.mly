@@ -22,9 +22,10 @@
 %%
 
 program:
-  /* nothing */   { [], [] }
-| program stmt { ($2 :: fst $1), snd $1 }
-| program fdecl { fst $1, ($2 :: snd $1) }
+  /* nothing */   { [], [], [] }
+| program vdecl { let (a,b,c) = $1 in ($2 :: a), b, c }
+| program stmt { let (a,b,c) = $1 in a, ($2 :: b), c }
+| program fdecl { let (a,b,c) = $1 in a, b, ($2 :: c) }
 
 
 fdecl:
@@ -35,13 +36,14 @@ fdecl:
     	formals = List.rev $4;
     	locals  = List.rev $6;
     	body    = List.rev $7 } }
-/*| STRING ID LPAREN arguement_list RPAREN vdecl_list stmt_list 
+| STRING ID LPAREN arguement_list RPAREN vdecl_list stmt_list ENDFUNC
   	{ { 
+      rtype   = String;
   		fname   = $2;
     	formals = List.rev $4;
     	locals  = List.rev $6;
     	body    = List.rev $7 } }
-| VERTEX ID LPAREN arguement_list RPAREN vdecl_list stmt_list 
+/*| VERTEX ID LPAREN arguement_list RPAREN vdecl_list stmt_list 
   	{ { 
   		fname   = $2;
     	formals = List.rev $4;
@@ -59,10 +61,16 @@ vdecl_list:
 | vdecl_list vdecl { $2 :: $1 }  /*shift reduce conflcit*/
 
 vdecl:
-  NUMBER ID SEMI		{ $2 }
-/*| STRING ID SEMI		{ $2 }
-| VERTEX ID SEMI		{ $2 }
-| EDGE ID 	SEMI		{ $2 }*/
+  NUMBER ID SEMI    { {vtype=Number; vname=$2; value=Assign($2, Num(0.))} }
+| STRING ID SEMI    { {vtype=String; vname=$2; value=Assign($2, Str(""))} }
+| VERTEX ID SEMI    { {vtype=Vertex; vname=$2; value=Assign($2, Str(""))} }
+| EDGE ID   SEMI    { {vtype=  Edge; vname=$2; value=Assign($2, Str(""))} }
+/*| LIST ID   SEMI    { {vtype=  List; vname=$2; value=Assign($2, Str(""))} }*/
+| NUMBER ID ASSIGN expr SEMI { {vtype=Number; vname=$2; value=Assign($2, $4)} }
+| STRING ID ASSIGN expr SEMI { {vtype=String; vname=$2; value=Assign($2, $4)} }
+| VERTEX ID ASSIGN expr SEMI { {vtype=Vertex; vname=$2; value=Assign($2, $4)} }
+| EDGE   ID ASSIGN expr SEMI { {vtype=  Edge; vname=$2; value=Assign($2, $4)} }
+/*| LIST ID ASSIGN   expr SEMI { Assign($2, $4) }*/
 
 arguement_list:
                 { [] } 
@@ -112,10 +120,6 @@ expr:
 | LDELETE expr RDELETE { Delete($2) }
 | LQUERY expr  RQUERY  { Query($2) }
 | ID ASSIGN expr   	{ Assign($1, $3) }
-/*| NUMBER ID ASSIGN expr { Assign($2, $4) }*/ /*shift reduce conflict*/
-| STRING ID ASSIGN expr { Assign($2, $4) }
-| VERTEX ID ASSIGN expr { Assign($2, $4) }
-| LIST ID ASSIGN expr { Assign($2, $4) }
 | ID LBRACKET INT RBRACKET { Mem($1, $3) }
 | LBRACKET list RBRACKET { List(List.rev $2) }
 | LPAREN expr RPAREN { $2 }
@@ -123,18 +127,15 @@ expr:
 | INT 				  { Int($1) } 
 | LITERAL		   	{ Num($1) }
 | STR           { Str($1) }
-/*| NUMBER ID 	   	{ Id($2) }	*/				/*shift reduce conflict*/
-| STRING ID	  	{ Id($2) }					
-| VERTEX ID 		{ Id($2) }
-| EDGE ID 			{ Id($2) }
-| LIST ID 			{ Id($2) }
 | ID 			   	  { Id($1) }
+
 
 list:
 	/*nothing*/		{ [] }
 |	ID 				{ [Id($1)] }
-|	LITERAL			{ [Num($1)] }
+|	LITERAL		{ [Num($1)] }
 |	STR 			{ [Str($1)] }
+| INT       { [Int($1)] }
 | list COMMA expr { $3 :: $1 }
 
 
