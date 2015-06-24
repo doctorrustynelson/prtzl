@@ -156,7 +156,7 @@ module.exports = function (grunt) {
 		}).join( ' ' );
 		
 		srcfiles.forEach( function( file ){
-			var command = 'compiler.exe < ' + path.join(file, 'src.prtzl') + ' > ' + path.join(file, 'compiled.c' ); 
+			var command = path.join( '.', 'compiler.exe' ) + ' < ' + path.join(file, 'src.prtzl') + ' > ' + path.join(file, 'compiled.c' ); 
 			exec( command, function( err, stdout, stderr ){
 				grunt.log.writeln( command );
 				grunt.log.writeln( '\tstdout: ' + stdout.split( '\n' ).join( '\n\t\t' ) );
@@ -415,7 +415,7 @@ module.exports = function (grunt) {
 	
 	grunt.registerTask( 'env', 'Print Build Environment.', function( ){
 		var done = this.async( );
-		var count = 6;
+		var count = 5;
 		
 		function completed(){
 			if( ( count -= 1 ) == 0 ){
@@ -446,10 +446,10 @@ module.exports = function (grunt) {
 			grunt.log.write( '\tocamlyacc: ' + stdout );
 			completed();
 		} );
-		exec( 'ls -la', function( err, stdout, stderr ){
+		/*exec( 'ls -la', function( err, stdout, stderr ){
 			grunt.log.writeln( 'ls: \n' + stdout );
 			completed();
-		} );
+		} );*/
 	} );
 
 	grunt.loadNpmTasks( 'grunt-contrib-copy' );
