@@ -156,7 +156,7 @@ module.exports = function (grunt) {
 		}).join( ' ' );
 		
 		srcfiles.forEach( function( file ){
-			var command = path.join( '.', 'compiler.exe' ) + ' < ' + path.join(file, 'src.prtzl') + ' > ' + path.join(file, 'compiled.c' ); 
+			var command = '.' + path.sep + 'compiler.exe' + ' < ' + path.join(file, 'src.prtzl') + ' > ' + path.join(file, 'compiled.c' ); 
 			exec( command, function( err, stdout, stderr ){
 				grunt.log.writeln( command );
 				grunt.log.writeln( '\tstdout: ' + stdout.split( '\n' ).join( '\n\t\t' ) );
