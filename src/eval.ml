@@ -27,6 +27,7 @@ let ary = Array.make 10 "0"
     | Query(e1) ->
         let v1 = eval e1 in
         print_string "querying ";  v1
+    | Call(e1, e2) -> "call"
     | Binop(e1, op, e2) ->
         let v1 = eval e1 and v2 = eval e2 in
         match op with

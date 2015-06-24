@@ -1,7 +1,7 @@
 type operator = Add | Sub | Mul | Div | Equal | Neq | Less | Leq 
-			  | Greater | Geq | Cancat
+			  | Greater | Geq | Concat
 
-(*type datatype = Number | String | Vertex | Edge | Void*)
+type datatype = Number | String | Vertex | Edge | Void | List
 
 
 type expr =
@@ -19,6 +19,9 @@ type expr =
      | List of expr list
      | Mem of string * int 
      | Call of string * expr list
+     | Keyword of string
+     | Noexpr
+
 
 
 type stmt = 
@@ -30,9 +33,19 @@ type stmt =
 	 | Return of expr
 
 
+
+type vdecl = {
+          vtype : datatype;
+          vname : string;
+          value : expr;
+}
+
 type func_decl = {
+          rtype : datatype;
 		fname : string; (* Name of the function *) 
 		formals : string list; (* Formal argument names *) 
-		locals : string list; (* Locally defined variables *) 
+		locals : vdecl list; (* Locally defined variables *) 
 		body : stmt list;
 }
+
+type program = vdecl list * stmt list * func_decl list
