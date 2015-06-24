@@ -1,0 +1,2 @@
+"hello world!";
+Number myfunc() "in my function."; return 0; endfunc
