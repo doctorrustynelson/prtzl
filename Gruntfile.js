@@ -10,6 +10,14 @@ module.exports = function (grunt) {
 		clean: {
 			build: {
 				src: 'build'
+			},
+			test: {
+				expand: true,
+				cwd: 'test',
+				src: [ '*/compiled.c', '*/compiled.exe' ]
+			},
+			dist: {
+				src: 'compiler.exe'
 			}
 		},
 		
@@ -17,7 +25,7 @@ module.exports = function (grunt) {
 			build: {
 				expand: true,
 				cwd: 'src',
-				src: [ '*' ],
+				src: [ '**/*' ],
 				dest: 'build'
 			}
 		},
@@ -37,16 +45,40 @@ module.exports = function (grunt) {
 		},
 		
 		ocamlc_compile: {
-			build: {
+			ast: {
 				cwd: 'build',
-				src: [ 'ast.mli', 'parser.mli', 'scanner.ml', 'parser.ml', 'calc.ml' ]
+				src: [ 'ast.ml' ]
+			},
+			ccode: {
+				cwd: 'build',
+				src: [ 'ccode.ml' ]
+			},
+			translate: {
+				cwd: 'build',
+				src: [ 'translate.ml' ]
+			},
+			compile: {
+				cwd: 'build',
+				src: [ 'compile.ml' ]
+			},
+			parser_mli: {
+				cwd: 'build',
+				src: [ 'parser.mli' ]
+			},
+			parser_ml: {
+				cwd: 'build',
+				src: [ 'parser.ml' ]
+			},
+			scanner: {
+				cwd: 'build',
+				src: [ 'scanner.ml' ]
 			}
 		},
 		
 		ocamlc_link: {
 			build: {
 				cwd: 'build',
-				src: [ 'parser.cmo', 'scanner.cmo', 'calc.cmo' ],
+				src: [ 'ast.cmo', 'parser.cmo', 'scanner.cmo', 'ccode.cmo', 'translate.cmo', 'compile.cmo' ],
 				dest: 'compiler.exe'
 			}
 		},
@@ -65,11 +97,32 @@ module.exports = function (grunt) {
 			}
 		},
 		
-		file_compare: {
+		diff: {
+			options: {
+				force: true
+			},
 			hello_out: [ 'test/hello/expected.out', 'test/hello/result.out' ],
-			hello_c: [ 'test/hello/expected.c', 'test/hello/compiled.c' ]
+			hello_c: [ 'test/hello/expected.c', 'test/hello/compiled.c' ],
+			empty_c: [ 'test/empty/expected.c', 'test/empty/compiled.c' ]
 		}
 	});
+	
+	grunt.registerMultiTask( 'diff', function( ){
+		var done = this.async( );
+		var srcfiles = this.filesSrc;
+		var success = true;
+		
+		var expected = grunt.file.read( srcfiles.shift() ).replace( /\s+/g, ' ' ).trim();
+		
+		srcfiles.forEach( function( f ){
+			var actual = grunt.file.read( f ).replace( /\s+/g, ' ' ).trim();
+			if( expected != actual ){
+				success = false;
+			}
+		})
+		
+		done(success)
+	} );
 	
 	grunt.registerMultiTask( 'compile', function( ){
 		var done = this.async( );
@@ -98,7 +151,9 @@ module.exports = function (grunt) {
 			}
 		}
 		
-		console.log(srcfiles)
+		var c_libs = [ 'list.c', 'map.c', 'prtzl.c' ].map( function( f ){
+			return path.join( 'build', 'clibs', f );
+		}).join( ' ' );
 		
 		srcfiles.forEach( function( file ){
 			var command = 'compiler.exe < ' + path.join(file, 'src.prtzl') + ' > ' + path.join(file, 'compiled.c' ); 
@@ -113,14 +168,14 @@ module.exports = function (grunt) {
 					return completed( );
 				}
 				
-				var command = 'gcc -o ' + path.join( file, 'compiled.exe') + ' ' + path.join( file, 'compiled.c'); 
-				exec( command, function( err, stdout, stderr ){
-					grunt.log.writeln( command );
+				var gcc_command = 'gcc -o ' + path.join( file, 'compiled.exe') + ' ' + path.join( file, 'compiled.c') + ' ' + c_libs; 
+				exec( gcc_command, function( err, stdout, stderr ){
+					grunt.log.writeln( gcc_command );
 					grunt.log.writeln( '\tstdout: ' + stdout.split( '\n' ).join( '\n\t\t' ) );
 					grunt.log.writeln( '\tstderr: ' + stderr.split( '\n' ).join( '\n\t\t' ) );
 					
 					if( err !== null ){
-						grunt.warn( command + ' exited with error code ' + err.code );
+						grunt.warn( gcc_command + ' exited with error code ' + err.code );
 						success = false;
 					}
 					
@@ -284,6 +339,8 @@ module.exports = function (grunt) {
 			});
 		});
 		
+		
+		
 		var count = srcfiles.length;
 		function completed(){
 			if( ( count -= 1 ) == 0 ){
@@ -391,7 +448,6 @@ module.exports = function (grunt) {
 		} );
 	} );
 
-	grunt.loadNpmTasks( 'grunt-file-compare' );
 	grunt.loadNpmTasks( 'grunt-contrib-copy' );
 	grunt.loadNpmTasks( 'grunt-contrib-clean' );
 
@@ -399,18 +455,25 @@ module.exports = function (grunt) {
 		'copy:build',
 		'ocamllex:build',
 		'ocamlyacc:build',
-		'ocamlc_compile:build',
+		'ocamlc_compile:ast', 
+		'ocamlc_compile:ccode', 
+		'ocamlc_compile:translate', 
+		'ocamlc_compile:parser_mli',
+		'ocamlc_compile:parser_ml',
+		'ocamlc_compile:scanner',
+		'ocamlc_compile:compile', 
 		'ocamlc_link:build'
 	] );
 	
 	grunt.registerTask( 'test', [
 		'compile:all',
 		'run:all',
-		'file_compare'
+		'diff'
 	] );
 
 	grunt.registerTask( 'default', [
 		'env',
+		'clean',
 		'build',
 		'test'
 	] );

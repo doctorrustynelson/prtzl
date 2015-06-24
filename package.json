@@ -5,7 +5,6 @@
 		"grunt": "*",
 		"grunt-contrib-clean": "*",
 		"grunt-contrib-copy": "*",
-		"grunt-file-compare": "*",
 		"time-grunt": "*"
 	}
 }
