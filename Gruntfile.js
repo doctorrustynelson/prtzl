@@ -147,7 +147,7 @@ module.exports = function (grunt) {
 		var count = srcfiles.length;
 		function completed(){
 			if( ( count -= 1 ) == 0 ){
-				done( success );
+				done( false );
 			}
 		}
 		
@@ -175,7 +175,7 @@ module.exports = function (grunt) {
 					grunt.log.writeln( '\tstderr: ' + stderr.split( '\n' ).join( '\n\t\t' ) );
 					
 					if( err !== null ){
-						grunt.warn( gcc_command + ' exited with error code ' + err.code );
+						grunt.log.writeln( 'Error: ' + gcc_command + ' exited with error code ' + err.code );
 						success = false;
 					}
 					
@@ -220,7 +220,7 @@ module.exports = function (grunt) {
 				grunt.log.writeln( '\tstderr: ' + stderr.split( '\n' ).join( '\n\t\t' ) );
 				
 				if( err !== null ){
-					grunt.warn( command + ' exited with error code ' + err.code );
+					grunt.log.writeln( 'Error: ' + command + ' exited with error code ' + err.code );
 					success = false;
 				}
 				
