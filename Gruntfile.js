@@ -415,7 +415,7 @@ module.exports = function (grunt) {
 	
 	grunt.registerTask( 'env', 'Print Build Environment.', function( ){
 		var done = this.async( );
-		var count = 5;
+		var count = 6;
 		
 		function completed(){
 			if( ( count -= 1 ) == 0 ){
@@ -444,6 +444,10 @@ module.exports = function (grunt) {
 		} );
 		exec( 'ocamlyacc -vnum', function( err, stdout, stderr ){
 			grunt.log.write( '\tocamlyacc: ' + stdout );
+			completed();
+		} );
+		exec( 'ls', function( err, stdout, stderr ){
+			grunt.log.writeln( 'ls: \n' + stdout );
 			completed();
 		} );
 	} );
@@ -475,6 +479,7 @@ module.exports = function (grunt) {
 		'env',
 		'clean',
 		'build',
+		'env',
 		'test'
 	] );
 }
