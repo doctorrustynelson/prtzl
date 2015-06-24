@@ -446,7 +446,7 @@ module.exports = function (grunt) {
 			grunt.log.write( '\tocamlyacc: ' + stdout );
 			completed();
 		} );
-		exec( 'ls', function( err, stdout, stderr ){
+		exec( 'ls -la', function( err, stdout, stderr ){
 			grunt.log.writeln( 'ls: \n' + stdout );
 			completed();
 		} );
