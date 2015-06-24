@@ -1,5 +1,11 @@
 language: c
 
+notifications:
+  email:
+    - m.mallett@columbia.edu
+    - gl2483@columbia.edu
+    - doctor.rusty.nelson@gmail.com
+
 install:
   - sudo add-apt-repository ppa:avsm/ocaml41+opam11 -y
   - sudo apt-get update -q
