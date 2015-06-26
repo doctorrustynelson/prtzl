@@ -8,7 +8,7 @@ let rec expr = function
 	      | Id s -> [Id s]
 	      | Int i -> [Int i]
 	      | Num n -> [Numb n]
-	      | Binop (e1, op, e2) -> expr e1 @ [Binop op] @ expr e2
+	      | Binop (e1, op, e2) -> [Binop ((expr e1), op, (expr e2))]
 	      | Assign (id, value) -> [Assign (id, (expr value))]
 	      | Keyword k -> [Keyword k]
 	      | Not(n) -> [Not (expr n)]
@@ -19,13 +19,13 @@ let rec expr = function
 
 let rec stmt = function
 			Block sl     -> List.concat (List.map stmt sl)
-	      | Expr e       -> expr e 
+	      | Expr e       -> expr e @ [Keyword ";"]
 	      | If (e1, e2, e3, e4) -> (match e4 with 
 	      					Block([]) -> [If (expr e1)] @ [Then (stmt e2)]
 	      				|   _ -> [If (expr e1)] @ [Then (stmt e2)] @ [Else (stmt e4)]	
 	      				)(*[Keyword "if "] @ expr e1 @ stmt e2 @  List.concat (List.map stmt e3) @ stmt e4*)
 	      | While(e, s) -> [While ((expr e), (stmt s))]
-	      | Return e     -> [Keyword "return "] @ expr e
+	      | Return e     -> [Return (expr e) ]
 
 let translate (globals, statements, functions) =
 
@@ -55,18 +55,19 @@ let rec string_of_ccode = function
   					Number -> "float "
   				| 	String -> "string "
   				| 	List -> "struct list* ")
-  | Binop(op) -> (match op with
-  					Add -> " + "
-  				| 	Sub -> " - "
-  				| 	Mul -> " * "
-  				| 	Div -> " / " 
-  				| 	Equal -> " == "
-  				| 	Neq -> " != "
-  				| 	Less -> " < "
-  				| 	Leq -> " <= "
-  				| 	Greater -> " > "
-  				| 	Geq -> " >= " 
-  				| 	Concat -> " ^ ")
+  | Binop(e1,op,e2) -> (match op with
+  					Add -> (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode e1)) ^ " + " ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode e2))
+  				| 	Sub -> (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode e1)) ^ " - " ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode e2))
+  				| 	Mul -> (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode e1)) ^ " * " ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode e2))
+  				| 	Div -> (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode e1)) ^ " / "  ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode e2))
+  				| 	Equal -> (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode e1)) ^ " == " ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode e2))
+  				| 	Neq -> (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode e1)) ^ " != " ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode e2))
+  				| 	Less -> (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode e1)) ^ " < " ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode e2))
+  				| 	Leq -> (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode e1)) ^ " <= " ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode e2))
+  				| 	Greater -> (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode e1)) ^ " > " ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode e2))
+  				| 	Geq -> (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode e1)) ^ " >= "  ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode e2))
+  				| 	Concat -> (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode e1)) ^ " ^ " ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode e2))
+  			)
   | Assign(id, value) -> (match value with
   					[]  -> id ^ ";"
   				|	[Strg _] -> id ^ " = " ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode value)) ^ ";"
@@ -78,6 +79,7 @@ let rec string_of_ccode = function
   				|	[Neg _] -> id ^ " = " ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode value)) ^ ";"
   				|	[Call _] -> id ^ " = " ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode value)) ^ ";"
   				| 	[List (i, e)] -> id ^ " = list_init();\r\n"^ (List.fold_left (fun x y -> x^"list_add("^id^", "^y^");\r\n") "" (List.map string_of_ccode e)) 
+  				|   [Binop _] -> id ^ " = " ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode value)) ^ ";"
   				)
   | Not(cl) -> "!(" ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode cl)) ^ ")"
   | Neg(cl) -> "-(" ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode cl)) ^ ")"
@@ -88,6 +90,7 @@ let rec string_of_ccode = function
   | Else(s) -> "else\r\n{\r\n\t" ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode s)) ^ "\r\n}"
   | While(e, s) -> "while(" ^(List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode e)) ^ ")" ^
   				   "{\r\n\t" ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode s)) ^ "\r\n}"
+  | Return(s) -> "return " ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode s)) ^ ";"
 
 (*let _ =
   let lexbuf = Lexing.from_channel stdin in
