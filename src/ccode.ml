@@ -16,6 +16,7 @@ type cstmt =
 |  	If of cstmt list
 |  	Then of cstmt list
 | 	Else of cstmt list
+|   Elseif of cstmt list * cstmt list 
 |   While of cstmt list * cstmt list 
 |   Return of cstmt list
 

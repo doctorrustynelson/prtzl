@@ -27,7 +27,7 @@ rule token = parse
 | "in_degree" { INDEGREE }		| "out_degree" { OUTDEGREE }
 | "to" { TO }					| "from" { FROM }
 | "weight" { WEIGHT }*)
-| "List" { LIST }
+| "endelseif" { ENDELSEIF }		| "List" { LIST }
 | "/*" { comment lexbuf }
 | ['0'-'9']+ as lit { INT(int_of_string lit) } 
 | ['0'-'9']+('.'['0'-'9']+)? as num { LITERAL(float_of_string num) }

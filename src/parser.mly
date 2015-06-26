@@ -2,7 +2,7 @@
 
 %token PLUS MINUS TIMES DIVIDE EQ NEQ GREATER LESS GEQ LEQ ASSIGN QUOTE CONCAT DOTOPT NOT COMMA SEMI 
 %token LPAREN RPAREN LINSERT RINSERT LDELETE RDELETE LQUERY RQUERY LBRACKET RBRACKET
-%token NUMBER STRING VERTEX EDGE LIST IF ELSE ELSEIF ENDIF WHILE DO ENDWHILE ENDFUNC RETURN EOF
+%token NUMBER STRING VERTEX EDGE LIST IF ELSE ELSEIF ENDIF ENDELSEIF WHILE DO ENDWHILE ENDFUNC RETURN EOF
 %token <float> LITERAL
 %token <string> ID
 %token <string> STR
@@ -87,17 +87,18 @@ stmt_list:
 /* nothing */		{ [] }
 | stmt_list stmt 	{ $2 :: $1 }
 
-/*elseif_list:										3 rules never reduced
-  nothing			{ [] }	
+elseif_list:										/* rules never reduced*/
+  /*nothing*/			{ [] }	
 | elseif_list elseif	{ $2 :: $1 }
 
 elseif:
-  ELSEIF LPAREN expr RPAREN stmt 		{ Elseif($3, $5) }*/
+  ELSEIF LPAREN expr RPAREN stmt	{ Elseif($3, $5) }
 
 stmt:
   expr SEMI			{ Expr($1) }
 | IF LPAREN expr RPAREN stmt %prec NOELSE ENDIF	{ If($3, $5, [Block([])], Block([]) ) }
 | IF LPAREN expr RPAREN stmt ELSE stmt ENDIF 	{ If($3, $5, [Block([])], $7) }
+| IF LPAREN expr RPAREN stmt elseif_list ENDELSEIF ELSE stmt ENDIF  { If($3, $5, List.rev $6, $9) }
 | WHILE LPAREN expr RPAREN DO stmt ENDWHILE		{ While($3, $6) }
 | RETURN expr SEMI	{ Return($2) }
 

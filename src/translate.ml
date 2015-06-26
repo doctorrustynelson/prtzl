@@ -3,6 +3,8 @@ open Ccode
 
 module StringMap = Map.Make(String)
 
+exception ParseError of string
+
 let rec expr = function
 			Str i -> [Strg i]
 	      | Id s -> [Id s]
@@ -20,10 +22,15 @@ let rec expr = function
 let rec stmt = function
 			Block sl     -> List.concat (List.map stmt sl)
 	      | Expr e       -> expr e @ [Keyword ";"]
-	      | If (e1, e2, e3, e4) -> (match e4 with 
-	      					Block([]) -> [If (expr e1)] @ [Then (stmt e2)]
-	      				|   _ -> [If (expr e1)] @ [Then (stmt e2)] @ [Else (stmt e4)]	
+	      | If (e1, e2, e3, e4) -> (match e3 with
+	      					[] -> (match e4 with 
+			      					Block([]) -> [If (expr e1)] @ [Then (stmt e2)]
+			      				|   _ -> [If (expr e1)] @ [Then (stmt e2)] @ [Else (stmt e4)]	
+			      			)
+	      				| 	(Elseif(e,s)) ::tail -> [If (expr e1)] @ [Then (stmt e2)] @ [Elseif (expr e, stmt s)] @ List.concat (List.map stmt tail) @ [Else (stmt e4)]
+	      				|   _ -> raise (ParseError "caught parse error")
 	      				)(*[Keyword "if "] @ expr e1 @ stmt e2 @  List.concat (List.map stmt e3) @ stmt e4*)
+	      | Elseif(e, s) -> [Elseif ((expr e), (stmt s))]
 	      | While(e, s) -> [While ((expr e), (stmt s))]
 	      | Return e     -> [Return (expr e) ]
 
@@ -80,6 +87,7 @@ let rec string_of_ccode = function
   				|	[Call _] -> id ^ " = " ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode value)) ^ ";"
   				| 	[List (i, e)] -> id ^ " = list_init();\r\n"^ (List.fold_left (fun x y -> x^"list_add("^id^", "^y^");\r\n") "" (List.map string_of_ccode e)) 
   				|   [Binop _] -> id ^ " = " ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode value)) ^ ";"
+  				|   _ -> raise (ParseError "caught parse error")
   				)
   | Not(cl) -> "!(" ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode cl)) ^ ")"
   | Neg(cl) -> "-(" ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode cl)) ^ ")"
@@ -88,6 +96,7 @@ let rec string_of_ccode = function
   | If(s) -> "if(" ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode s)) ^ ")"
   | Then(s) -> "{\r\n\t" ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode s)) ^ "\r\n}"
   | Else(s) -> "else\r\n{\r\n\t" ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode s)) ^ "\r\n}"
+  | Elseif(e, s) -> "elseif(" ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode e)) ^ ")\r\n{\r\n\t" ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode s)) ^ "\r\n}"
   | While(e, s) -> "while(" ^(List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode e)) ^ ")" ^
   				   "{\r\n\t" ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode s)) ^ "\r\n}"
   | Return(s) -> "return " ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode s)) ^ ";"
