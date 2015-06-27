@@ -1,7 +1,15 @@
 language: c
 
+notifications:
+  email:
+    - m.mallett@columbia.edu
+    - gl2483@columbia.edu
+    - doctor.rusty.nelson@gmail.com
+
 install:
-  - sudo apt-get install ocaml
+  - sudo add-apt-repository ppa:avsm/ocaml41+opam11 -y
+  - sudo apt-get update -q
+  - sudo apt-get install ocaml ocaml-native-compilers camlp4-extra opam
   - npm install
 
 script:

@@ -27,3 +27,5 @@ build
 
 # compiled files
 *.exe
+compiled.c
+compiled.out

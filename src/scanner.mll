@@ -9,7 +9,7 @@ rule token = parse
 | '=' { ASSIGN }				| ">=" { GEQ }
 | '"' { QUOTE }					| "<=" { LEQ }
 | '!' { NOT } 					| ','  { COMMA }
-| '^' { CANCAT }				| '.' { DOTOPT }
+| '^' { CONCAT }				| '.' { DOTOPT }
 | '(' { LPAREN }				| ')' { RPAREN }
 | '[' { LBRACKET }				| ']' { RBRACKET }
 (*| '{' { LBRACE }				| '}' { RBRACE }*)
@@ -22,12 +22,12 @@ rule token = parse
 | "elseif" { ELSEIF }			| "endif" { ENDIF }
 | "while" { WHILE }				| "do" { DO }	
 | "endwhile" { ENDWHILE }		| "return" { RETURN }
-| ';' { SEMI }
+| "endfunc" { ENDFUNC }			| ';' { SEMI }
 (*| "in" { IN }					| "out" { OUT }
 | "in_degree" { INDEGREE }		| "out_degree" { OUTDEGREE }
 | "to" { TO }					| "from" { FROM }
 | "weight" { WEIGHT }*)
-| "List" { LIST }
+| "endelseif" { ENDELSEIF }		| "List" { LIST }
 | "/*" { comment lexbuf }
 | ['0'-'9']+ as lit { INT(int_of_string lit) } 
 | ['0'-'9']+('.'['0'-'9']+)? as num { LITERAL(float_of_string num) }
