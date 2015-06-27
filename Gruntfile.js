@@ -112,11 +112,15 @@ module.exports = function (grunt) {
 		var srcfiles = this.filesSrc;
 		var success = true;
 		
-		var expected = grunt.file.read( srcfiles.shift() ).replace( /\s+/g, ' ' ).trim();
+		var src = srcfiles.shift();
+		var expected = grunt.file.read( src ).replace( /\s+/g, ' ' ).trim();
 		
 		srcfiles.forEach( function( f ){
 			var actual = grunt.file.read( f ).replace( /\s+/g, ' ' ).trim();
 			if( expected != actual ){
+				grunt.log.writeln("Error: " + f + " did not match " + src + ".");
+				grunt.log.writeln("Expected: \n\t" + grunt.file.read( src ).split("\n").join("\n\t"));
+				grunt.log.writeln("Actual: \n\t" + grunt.file.read( f ).split("\n").join("\n\t"));
 				success = false;
 			}
 		})
@@ -147,7 +151,7 @@ module.exports = function (grunt) {
 		var count = srcfiles.length;
 		function completed(){
 			if( ( count -= 1 ) == 0 ){
-				done( false );
+				done( success );
 			}
 		}
 		
@@ -201,7 +205,7 @@ module.exports = function (grunt) {
 					return true;
 				}
 			}).forEach( function( filepath ){
-				srcfiles.push( [ path.join( file.cwd, filepath ) /*, currently building in place so no dest needed */] );
+				srcfiles.push( path.join( file.cwd, filepath ) /*, currently building in place so no dest needed */ );
 			});
 		});
 		
