@@ -74,14 +74,15 @@ vdecl:
 
 arguement_list:
                 { [] } 
-| NUMBER ID 		{ [$2] }
-| STRING ID 		{ [$2] }
-| VERTEX ID 		{ [$2] }
-| EDGE ID 			{ [$2] }
-| arguement_list COMMA NUMBER ID 	 { $4 :: $1 }
-| arguement_list COMMA STRING ID   { $4 :: $1 }
-| arguement_list COMMA VERTEX ID   { $4 :: $1 }
-| arguement_list COMMA EDGE   ID   { $4 :: $1 }
+| arguement     { [$1] }
+| arguement_list COMMA arguement 	 { $3 :: $1 }
+
+arguement:
+  NUMBER ID     { {ftype = Number; fname = $2} }
+| STRING ID     { {ftype = String; fname = $2} }
+| VERTEX ID     { {ftype = Vertex; fname = $2} }
+| EDGE ID       { {ftype = Edge; fname = $2} }
+| LIST ID       { {ftype = List; fname = $2} }
 
 stmt_list:
 /* nothing */		{ [] }

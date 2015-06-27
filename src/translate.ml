@@ -17,6 +17,7 @@ let rec expr = function
 	      | Neg(n) -> [Neg (expr n)]
 	      | Call(s, el) -> [Call (s, (List.concat (List.map expr el)))]
 	      | List(el) -> [List ("", (List.concat (List.map expr el)))]
+	      | Mem(id, i) -> [Mem (id, i)]
 	      | Noexpr -> []
 
 let rec stmt = function
@@ -37,8 +38,15 @@ let rec stmt = function
 let translate (globals, statements, functions) =
 
 	let translatefunc fdecl =
+		let rec arg = function
+			  [] -> []
+			| [a] -> [Datatype a.ftype] @ [Id a.fname]
+			| hd::tl -> [Datatype hd.ftype] @ [Id hd.fname] @ [Keyword ", "] @ arg tl
+		in
 	    [Datatype fdecl.rtype] @ [Id fdecl.fname] @ 
-	    [Keyword "("] @ [Keyword ")\r\n{\r\n"] @
+	    [Keyword "("] @ 
+	    arg fdecl.formals @ 
+	    [Keyword ")\r\n{\r\n"] @
 	    stmt (Block fdecl.body) @ [Keyword "\r\n}\r\n"](*@  (* Body *)
 	    [Ret 0]   (* Default = return 0 *)*)
 	and translatestm stm = 
@@ -87,12 +95,14 @@ let rec string_of_ccode = function
   				|	[Call _] -> id ^ " = " ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode value)) ^ ";"
   				| 	[List (i, e)] -> id ^ " = list_init();\r\n"^ (List.fold_left (fun x y -> x^"list_add("^id^", "^y^");\r\n") "" (List.map string_of_ccode e)) 
   				|   [Binop _] -> id ^ " = " ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode value)) ^ ";"
+  				|   [Mem _] -> id ^ " = " ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode value)) ^ ";"
   				|   _ -> raise (ParseError "caught parse error")
   				)
   | Not(cl) -> "!(" ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode cl)) ^ ")"
   | Neg(cl) -> "-(" ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode cl)) ^ ")"
   | Call(s, cl) -> s ^ "(" ^ (List.fold_left (fun x y -> match x with "" -> y | _ -> x^","^y) "" (List.map string_of_ccode cl)) ^ ");"
   | List(id, cl) -> (List.fold_left (fun x y -> match x with "" -> y | _ -> x^","^y) "" (List.map string_of_ccode cl))
+  | Mem(id, i) -> "list_get(" ^ id ^ ", " ^ string_of_int i ^ ")"
   | If(s) -> "if(" ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode s)) ^ ")"
   | Then(s) -> "{\r\n\t" ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode s)) ^ "\r\n}"
   | Else(s) -> "else\r\n{\r\n\t" ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode s)) ^ "\r\n}"
@@ -100,7 +110,7 @@ let rec string_of_ccode = function
   | While(e, s) -> "while(" ^(List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode e)) ^ ")" ^
   				   "{\r\n\t" ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode s)) ^ "\r\n}"
   | Return(s) -> "return " ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode s)) ^ ";"
-
+  (*| Formal(f) -> (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode f))*)
 (*let _ =
   let lexbuf = Lexing.from_channel stdin in
   let program = Parser.program Scanner.token lexbuf in

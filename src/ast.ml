@@ -40,10 +40,15 @@ type vdecl = {
           value : expr;
 }
 
+type formal = {
+          ftype : datatype;
+          fname : string;
+}
+
 type func_decl = {
           rtype : datatype;
 		fname : string; (* Name of the function *) 
-		formals : string list; (* Formal argument names *) 
+		formals : formal list; (* Formal argument names *) 
 		locals : vdecl list; (* Locally defined variables *) 
 		body : stmt list;
 }
