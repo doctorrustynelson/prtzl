@@ -5,39 +5,55 @@ module StringMap = Map.Make(String)
 
 exception ParseError of string
 
-let rec expr = function
-			Str i -> [Strg i]
-	      | Id s -> [Id s]
-	      | Int i -> [Int i]
-	      | Num n -> [Numb n]
-	      | Binop (e1, op, e2) -> [Binop ((expr e1), op, (expr e2))]
-	      | Assign (id, value) -> [Assign (id, (expr value))]
-	      | Keyword k -> [Keyword k]
-	      | Not(n) -> [Not (expr n)]
-	      | Neg(n) -> [Neg (expr n)]
-	      | Call(s, el) -> [Call (s, (List.concat (List.map expr el)))]
-	      | List(el) -> [List ("", (List.concat (List.map expr el)))]
-	      | Mem(id, i) -> [Mem (id, i)]
-	      | Noexpr -> []
+let string_of_datatype = function
+  	Number -> "Number"
+  | String -> "String"
+  | Vertex -> "Vertex"
+  | Edge   -> "Edge"
+  | Void   -> "Void"	
+  | List   -> "List"
 
-let rec stmt = function
-			Block sl     -> List.concat (List.map stmt sl)
-	      | Expr e       -> expr e @ [Keyword ";"]
+
+let rec expr (e, sm) = 
+			match e with
+			Str i -> ("String", [Strg i])
+	      | Id s -> ((StringMap.find s sm), [Id s])
+	      | Int i -> ("Number", [Int i])
+	      | Num n -> ("Number", [Numb n])
+	      | Binop (e1, op, e2) -> if(fst (expr(e1,sm)) = fst (expr(e2,sm)) )
+	      						  then ((fst (expr(e1,sm))), [Binop (snd (expr (e1,sm) ), op, snd (expr (e2, sm) ))])
+	      						  else raise (ParseError "type not match") 
+	      | Assign (id, value) -> if(fst (expr(value, sm) ) = (StringMap.find id sm) )
+	      						  then ( fst (expr(value, sm) ), [Assign (id, snd (expr(value, sm) ))])
+	      						  else raise (ParseError "type not match")
+	      | Keyword k -> ("Void", [Keyword k])
+	      | Not(n) -> (fst (expr (n, sm)), [Not (snd (expr (n, sm) ))])
+	      | Neg(n) -> (fst (expr (n, sm)), [Neg (snd (expr (n, sm) ))])
+	      | Call(s, el) -> ("Void", [Call (s, (List.concat (List.map (fun x -> snd (expr (x, sm) ) ) el)))])
+	      | List(el) -> ("List", [List ("", (List.concat (List.map (fun x ->  snd (expr (x, sm) ) ) el)))])
+	      | Mem(id, i) -> ("Void",[Mem (id, i)])
+	      | Noexpr -> ("Void", [])
+
+let rec stmt (st, sm)  = 
+			match st with
+			Block sl     -> List.concat (List.map (fun x -> stmt (x,sm) ) sl )
+	      | Expr e       -> snd(expr (e, sm)) @ [Keyword ";"]
 	      | If (e1, e2, e3, e4) -> (match e3 with
 	      					[] -> (match e4 with 
-			      					Block([]) -> [If (expr e1)] @ [Then (stmt e2)]
-			      				|   _ -> [If (expr e1)] @ [Then (stmt e2)] @ [Else (stmt e4)]	
+			      					Block([]) -> [If (snd(expr (e1, sm) ) )] @ [Then (stmt (e2, sm) )]
+			      				|   _ -> [If (snd (expr (e1, sm) ) )] @ [Then (stmt (e2, sm) )] @ [Else (stmt (e4, sm) )]	
 			      			)
-	      				| 	(Elseif(e,s)) ::tail -> [If (expr e1)] @ [Then (stmt e2)] @ [Elseif (expr e, stmt s)] @ List.concat (List.map stmt tail) @ [Else (stmt e4)]
+	      				| 	(Elseif(e,s)) ::tail -> [If (snd (expr (e1, sm) ) )] @ [Then (stmt (e2, sm) )] @ [Elseif ( (snd (expr (e, sm))), stmt (s, sm) )] @ List.concat (List.map (fun x -> stmt (x,sm) ) tail ) @ [Else (stmt (e4, sm) )]
 	      				|   _ -> raise (ParseError "caught parse error")
 	      				)(*[Keyword "if "] @ expr e1 @ stmt e2 @  List.concat (List.map stmt e3) @ stmt e4*)
-	      | Elseif(e, s) -> [Elseif ((expr e), (stmt s))]
-	      | While(e, s) -> [While ((expr e), (stmt s))]
-	      | Return e     -> [Return (expr e) ]
+	      | Elseif(e, s) -> [Elseif ( (snd(expr (e, sm) ) ), (stmt (s, sm) ))]
+	      | While(e, s) -> [While ( (snd (expr (e, sm) ) ), (stmt (s, sm) ))]
+	      | Return e     -> [Return ( snd (expr (e, sm) ) ) ]
+
 
 let translate (globals, statements, functions) =
 
-	let translatefunc fdecl =
+	let translatefunc (fdecl, sm) =
 		let rec arg = function
 			  [] -> []
 			| [a] -> [Datatype a.ftype] @ [Id a.fname]
@@ -47,16 +63,23 @@ let translate (globals, statements, functions) =
 	    [Keyword "("] @ 
 	    arg fdecl.formals @ 
 	    [Keyword ")\r\n{\r\n"] @
-	    stmt (Block fdecl.body) @ [Keyword "\r\n}\r\n"](*@  (* Body *)
+	    stmt ((Block fdecl.body), sm) @ [Keyword "\r\n}\r\n"](*@  (* Body *)
 	    [Ret 0]   (* Default = return 0 *)*)
-	and translatestm stm = 
-		stmt (Block stm)
+	and translatestm (stm, sm) = 
+		stmt ((Block stm), sm)
 
-	and translatestg glob =
-		[Datatype glob.vtype] @ expr glob.value
+	and translatestg (glob, sm) = 
+		[Datatype glob.vtype] @ snd(expr (glob.value, sm))
 
-	in List.concat (List.map translatefunc functions ) @
-	   [Main] @ List.concat (List.map translatestg globals) @ translatestm statements @ [Endmain]
+	and map varlist = 
+		List.fold_left 
+			(fun m var -> if(StringMap.mem var.vname m) then raise (ParseError (var.vname ^ " already declared"))
+			else StringMap.add var.vname (string_of_datatype var.vtype) m) StringMap.empty varlist
+
+	in (*map globals; (List.concat (List.map (fun x -> x.locals) functions)));*)
+	   List.concat (List.map (fun x -> translatefunc (x, (map globals) ) ) functions ) @
+	   [Main] @ List.concat (List.map (fun x -> translatestg (x, (map globals) ) ) globals) @ translatestm (statements, (map globals)) @ [Endmain]
+
 
 let rec string_of_ccode = function
 	Main -> "int main() { \r\n"
@@ -110,6 +133,9 @@ let rec string_of_ccode = function
   | While(e, s) -> "while(" ^(List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode e)) ^ ")" ^
   				   "{\r\n\t" ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode s)) ^ "\r\n}"
   | Return(s) -> "return " ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode s)) ^ ";"
+  
+
+
   (*| Formal(f) -> (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode f))*)
 (*let _ =
   let lexbuf = Lexing.from_channel stdin in
