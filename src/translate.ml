@@ -97,7 +97,7 @@ let translate (globals, statements, functions) =
 	in (*map globals; (List.concat (List.map (fun x -> x.locals) functions)));*)
 	   List.concat (List.map (fun x -> translatefunc (x, (map globals), (functionmap functions) ) ) functions ) @
 	   [Main] @ 
-	   List.concat (List.map (fun x -> translatestg (x, (map globals), (functionmap functions) ) ) globals) @ 
+	   List.concat (List.map (fun x -> translatestg (x, (map globals), (functionmap functions) ) ) (List.rev globals) ) @ 
 	   translatestm (statements, (map globals), (functionmap functions) ) 
 	   @ [Endmain]
 
