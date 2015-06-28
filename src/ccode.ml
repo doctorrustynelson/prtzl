@@ -17,6 +17,9 @@ type cstmt =
 |  	Then of cstmt list
 | 	Else of cstmt list
 |   While of cstmt list * cstmt list 
+|   Insert of string
+|   Query of string
+|   Delete of string
 
 type prog = {
 	text : cstmt array;

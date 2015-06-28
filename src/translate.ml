@@ -15,6 +15,9 @@ let rec expr = function
 	      | Neg(n) -> [Neg (expr n)]
 	      | Call(s, el) -> [Call (s, (List.concat (List.map expr el)))]
 	      | List(el) -> [List ("", (List.concat (List.map expr el)))]
+	      | Insert(s) -> [Insert s]
+	      | Query(s) -> [Query s]
+	      | Delete(s) -> [Delete s]
 	      | Noexpr -> []
 
 let rec stmt = function
@@ -44,7 +47,7 @@ let translate (globals, statements, functions) =
 	   [Main] @ List.concat (List.map translatestg globals) @ translatestm statements @ [Endmain]
 
 let rec string_of_ccode = function
-	Main -> "int main() { \r\n"
+	Main -> "#include \"prtzl.h\"\r\nstruct graph* g\r\nint main() { \r\ng = init_graph();\r\n"
   | Endmain -> "\r\n\t return 0; \r\n}\r\n"	
   | Strg(l) -> l
   | Id(s) -> s
@@ -88,6 +91,9 @@ let rec string_of_ccode = function
   | Else(s) -> "else\r\n{\r\n\t" ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode s)) ^ "\r\n}"
   | While(e, s) -> "while(" ^(List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode e)) ^ ")" ^
   				   "{\r\n\t" ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode s)) ^ "\r\n}"
+  | Insert(s) -> "insert_vertex(g, " ^ s ^ ")"
+  | Query(s) -> "query_vertex(g, " ^ s ^ ")"
+  | Delete(s) -> "delete_vertex(g, " ^ s ^ ")"
 
 (*let _ =
   let lexbuf = Lexing.from_channel stdin in
