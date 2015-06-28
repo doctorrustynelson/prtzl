@@ -104,7 +104,7 @@ let translate (globals, statements, functions) =
 
 let rec string_of_ccode (ty, cs) = 
 	match cs with
-	Main -> "int main() { \r\n"
+	Main -> "#include \"prtzl.h\"\r\nstruct graph* g;\r\nint main() {\r\ng=init_graph();\r\n"
   | Endmain -> "\r\n\t return 0; \r\n}\r\n"	
   | Strg(l) -> l
   | Id(s) -> s
@@ -183,9 +183,9 @@ let rec string_of_ccode (ty, cs) =
   | While(e, s) -> "while(" ^(List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty, x) ) e)) ^ ")" ^
   				   "{\r\n\t" ^ (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty, x) ) s)) ^ "\r\n}"
   | Return(s) 	-> "return " ^ (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty, x) ) s)) ^ ";"
-  | Insert(e) 	-> "insert_vertex(g, " ^ (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty, x) ) e)) ^ ");"
-  | Query(e) 	-> "query_vertex(g, " ^ (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty, x) ) e)) ^ ");"
-  | Delete(e) 	-> "delete_vertex(g, " ^ (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty, x) ) e)) ^ ");"
+  | Insert(e) 	-> "insert_vertex(g, " ^ (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty, x) ) e)) ^ ")"
+  | Query(e) 	-> "query_vertex(g, " ^ (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty, x) ) e)) ^ ")"
+  | Delete(e) 	-> "delete_vertex(g, " ^ (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty, x) ) e)) ^ ")"
 
 
   (*| Formal(f) -> (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode f))*)
