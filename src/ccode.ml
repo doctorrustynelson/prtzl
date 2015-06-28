@@ -1,8 +1,3 @@
-type arg = {
-	ty : string;
-	value : Ast.expr
-}
-
 type cstmt =
 	Strg of string
 |	Numb of float
@@ -17,7 +12,7 @@ type cstmt =
 |   Assign of string * (string * cstmt list)
 | 	Not of cstmt list
 | 	Neg of cstmt list
-|  	Call of string * arg list 
+|  	Call of string * cstmt list 
 |   List of string * cstmt list
 |   Mem of string * int
 |  	If of cstmt list

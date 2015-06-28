@@ -5,6 +5,12 @@ module StringMap = Map.Make(String)
 
 exception ParseError of string
 
+let rec comparelist v1 v2 = match v1, v2 with
+  [], []       -> true
+| [], _
+| _, []        -> false
+| x::xs, y::ys -> x = y && comparelist xs ys
+
 let string_of_datatype = function
   	Number -> "Number"
   | String -> "String"
@@ -31,7 +37,9 @@ let rec expr (e, sm, fm) =
 	      | Keyword k -> ("Void", [Keyword k])
 	      | Not(n) -> (fst (expr (n, sm, fm)), [Not (snd (expr (n, sm, fm) ))])
 	      | Neg(n) -> (fst (expr (n, sm, fm)), [Neg (snd (expr (n, sm, fm) ))])
-	      | Call(s, el) -> ( (List.hd (StringMap.find s fm) ), [Call (s, (List.concat (List.map (fun x -> [{ty=fst (expr(x,sm, fm)); value=x}] ) el)))])
+	      | Call(s, el) -> if( comparelist (List.tl (StringMap.find s fm) ) (List.map (fun x -> fst (expr(x,sm, fm)) ) el ) ) 
+	      					then ( (List.hd (StringMap.find s fm) ), [Call (s, (List.concat (List.map (fun x -> snd (expr(x,sm, fm)) ) el)))])
+	      					else raise (ParseError "arguement types do not match")
 	      | List(el) -> ("List", [List ("", (List.concat (List.map (fun x ->  snd (expr (x, sm, fm) ) ) el)))])
 	      | Mem(id, i) -> ("Void",[Mem (id, i)])
 	      | Insert(e) -> ("Vertex", [Insert  (snd (expr (e, sm, fm) ) )])
@@ -165,7 +173,7 @@ let rec string_of_ccode (ty, cs) =
   				)
   | Not(cl) 	-> "!(" ^ (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty, x) ) cl)) ^ ")"
   | Neg(cl) 	-> "-(" ^ (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty, x) ) cl)) ^ ")"
-  | Call(s, cl) -> s ^ "(" ^ (List.fold_left (fun x y -> match x with "" -> y | _ -> x^","^y) "" (List.map (fun x -> string_of_ccode (ty, List.hd (snd (expr (x.value, StringMap.empty, StringMap.empty) ) ) ) ) cl)) ^ ");"
+  | Call(s, cl) -> s ^ "(" ^ (List.fold_left (fun x y -> match x with "" -> y | _ -> x^","^y) "" (List.map (fun x -> string_of_ccode (ty, x ) ) cl)) ^ ");"
   | List(id, cl)-> (List.fold_left (fun x y -> match x with "" -> y | _ -> x^","^y) "" (List.map (fun x -> string_of_ccode (ty, x) ) cl))
   | Mem(id, i) 	-> "list_get(" ^ id ^ ", " ^ string_of_int i ^ ")"
   | If(s) 		-> "if(" ^ (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty, x) ) s)) ^ ")"
