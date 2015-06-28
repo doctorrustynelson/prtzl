@@ -121,3 +121,32 @@ double bi_link(struct node* src, struct node* dest, double weight){
 
 }
 
+void print_number(double n){
+
+	printf("%lf\n", n);
+}
+
+void print_string(char* s){
+
+	printf("%s\n", s);
+}
+
+void print_vertex(struct node* v){
+
+	printf("%s: %.0lf edge(s) in %.0lf edge(s) out\n",
+		(char*) get_node_property(v, "label"),
+		*((double*) get_node_property(v, "in_degree")),
+		*((double*) get_node_property(v, "out_degree")));
+		
+}
+
+void print_edge(struct node* e){
+
+	printf("src: %s dest: %s weight: %lf",
+		(char*) get_node_property(get_node_property(e, "src"), "label"),
+		(char*) get_node_property(get_node_property(e, "dest"), "label"),
+		*((double*) get_node_property(e, "weight")));
+
+}
+
+

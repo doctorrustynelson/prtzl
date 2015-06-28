@@ -29,3 +29,10 @@ double link(struct node*, struct node*, double weight);
 
 double bi_link(struct node*, struct node*, double weight);
 
+void print_number(double);
+
+void print_string(char*);
+
+void print_vertex(struct node*);
+
+void print_edge(struct node*);

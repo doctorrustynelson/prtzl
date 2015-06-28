@@ -41,8 +41,9 @@ int main(){
 	printf("linked\n");
 
 	// deg = omaha.out_degree;
-	deg = *((double*) get_node_property(omaha, "out_degree"));
-	printf("%lf degree\n", deg);	
+	// deg = *((double*) get_node_property(omaha, "out_degree"));
+	// printf("%lf degree\n", deg);	
+	print_vertex(omaha);
 
 	// get the edge from neighbor list
 	// follow it to get the dest
@@ -53,8 +54,9 @@ int main(){
 
 	// get the label property from dest
 	// dest.label
-	printf("%s\n", (char*)
-		get_node_property(dest, "label"));
+	// printf("%s\n", (char*)
+	// 	get_node_property(dest, "label"));
+	print_edge(edge);
 
 	int res = delete_vertex(g, "omaha");
 
