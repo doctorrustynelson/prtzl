@@ -1,3 +1,8 @@
+type arg = {
+	ty : string;
+	value : Ast.expr
+}
+
 type cstmt =
 	Strg of string
 |	Numb of float
@@ -8,11 +13,11 @@ type cstmt =
 |   Main	
 | 	Endmain 
 | 	Datatype of Ast.datatype
-| 	Binop	of cstmt list * Ast.operator * cstmt list
-|   Assign of string * cstmt list
+| 	Binop	of (string * cstmt list) * Ast.operator * (string * cstmt list)
+|   Assign of string * (string * cstmt list)
 | 	Not of cstmt list
 | 	Neg of cstmt list
-|  	Call of string * cstmt list 
+|  	Call of string * arg list 
 |   List of string * cstmt list
 |   Mem of string * int
 |  	If of cstmt list
