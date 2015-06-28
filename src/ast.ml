@@ -20,6 +20,7 @@ type expr =
      | Mem of string * int 
      | Call of string * expr list
      | Keyword of string
+     | Vertex of string
      | Noexpr
 
 

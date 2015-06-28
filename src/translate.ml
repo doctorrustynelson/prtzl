@@ -20,6 +20,7 @@ let rec expr (e, sm) =
 	      | Id s -> ((StringMap.find s sm), [Id s])
 	      | Int i -> ("Number", [Int i])
 	      | Num n -> ("Number", [Numb n])
+	      | Vertex(label) -> ("Vertex", [Vertex label])
 	      | Binop (e1, op, e2) -> if(fst (expr(e1,sm)) = fst (expr(e2,sm)) )
 	      						  then ((fst (expr(e1,sm))), [Binop (snd (expr (e1,sm) ), op, snd (expr (e2, sm) ))])
 	      						  else raise (ParseError "type not match") 
@@ -32,6 +33,7 @@ let rec expr (e, sm) =
 	      | Call(s, el) -> ("Void", [Call (s, (List.concat (List.map (fun x -> snd (expr (x, sm) ) ) el)))])
 	      | List(el) -> ("List", [List ("", (List.concat (List.map (fun x ->  snd (expr (x, sm) ) ) el)))])
 	      | Mem(id, i) -> ("Void",[Mem (id, i)])
+	      | Insert(e) -> ("Vertex", [Insert  (snd (expr (e, sm) ) )])
 	      | Noexpr -> ("Void", [])
 
 let rec stmt (st, sm)  = 
@@ -88,10 +90,12 @@ let rec string_of_ccode = function
   | Id(s) -> s
   | Numb(n) -> (string_of_float n)
   | Int(i) -> (string_of_int i)
+  | Vertex(l) -> l
   | Keyword(k) -> k
   | Datatype(t) -> (match t with 
-  					Number -> "float "
-  				| 	String -> "string "
+  					Number -> "double "
+  				| 	String -> "char* "
+  				| 	Vertex -> "struct node* "
   				| 	List -> "struct list* ")
   | Binop(e1,op,e2) -> (match op with
   					Add -> (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode e1)) ^ " + " ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode e2))
@@ -112,6 +116,7 @@ let rec string_of_ccode = function
   				|	[Id _] -> id ^ " = " ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode value)) ^ ";"
   				|	[Int _] -> id ^ " = " ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode value)) ^ ";"
   				|	[Numb _] -> id ^ " = " ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode value)) ^ ";"
+  				|   [Vertex _] ->  id ^ ";"
   				|	[Keyword _] -> id ^ " = " ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode value)) ^ ";"
   				|	[Not _] -> id ^ " = " ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode value)) ^ ";"
   				|	[Neg _] -> id ^ " = " ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode value)) ^ ";"
@@ -119,6 +124,7 @@ let rec string_of_ccode = function
   				| 	[List (i, e)] -> id ^ " = list_init();\r\n"^ (List.fold_left (fun x y -> x^"list_add("^id^", "^y^");\r\n") "" (List.map string_of_ccode e)) 
   				|   [Binop _] -> id ^ " = " ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode value)) ^ ";"
   				|   [Mem _] -> id ^ " = " ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode value)) ^ ";"
+  				|  	[Insert _] -> id ^ " = " ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode value)) ^ ";"
   				|   _ -> raise (ParseError "caught parse error")
   				)
   | Not(cl) -> "!(" ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode cl)) ^ ")"
@@ -133,7 +139,7 @@ let rec string_of_ccode = function
   | While(e, s) -> "while(" ^(List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode e)) ^ ")" ^
   				   "{\r\n\t" ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode s)) ^ "\r\n}"
   | Return(s) -> "return " ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode s)) ^ ";"
-  
+  | Insert(e) -> "insert_vertex(g, " ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode e)) ^ ");"
 
 
   (*| Formal(f) -> (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode f))*)

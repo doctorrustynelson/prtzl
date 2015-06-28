@@ -3,6 +3,7 @@ type cstmt =
 |	Numb of float
 |	Int	 of int
 |	Id 	 of string
+|   Vertex of string
 | 	Keyword of string
 |   Main	
 | 	Endmain 
@@ -20,6 +21,7 @@ type cstmt =
 |   Elseif of cstmt list * cstmt list 
 |   While of cstmt list * cstmt list 
 |   Return of cstmt list
+| 	Insert of cstmt list
 
 type prog = {
 	text : cstmt array;
