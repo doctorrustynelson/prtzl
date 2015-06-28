@@ -34,6 +34,8 @@ let rec expr (e, sm) =
 	      | List(el) -> ("List", [List ("", (List.concat (List.map (fun x ->  snd (expr (x, sm) ) ) el)))])
 	      | Mem(id, i) -> ("Void",[Mem (id, i)])
 	      | Insert(e) -> ("Vertex", [Insert  (snd (expr (e, sm) ) )])
+	      | Query(e) -> ("Vertex", [Query (snd (expr (e, sm)))])
+	      | Delete(e) -> ("Number", [Delete (snd (expr (e, sm)))])
 	      | Noexpr -> ("Void", [])
 
 let rec stmt (st, sm)  = 
@@ -125,6 +127,8 @@ let rec string_of_ccode = function
   				|   [Binop _] -> id ^ " = " ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode value)) ^ ";"
   				|   [Mem _] -> id ^ " = " ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode value)) ^ ";"
   				|  	[Insert _] -> id ^ " = " ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode value)) ^ ";"
+  				| 	[Query _] -> id ^ " = " ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode value)) ^ ";"
+  				| 	[Delete _] -> id ^ " = " ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode value)) ^ ";"
   				|   _ -> raise (ParseError "caught parse error")
   				)
   | Not(cl) -> "!(" ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode cl)) ^ ")"
@@ -140,6 +144,8 @@ let rec string_of_ccode = function
   				   "{\r\n\t" ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode s)) ^ "\r\n}"
   | Return(s) -> "return " ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode s)) ^ ";"
   | Insert(e) -> "insert_vertex(g, " ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode e)) ^ ");"
+  | Query(e) -> "query_vertex(g, " ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode e)) ^ ");"
+  | Delete(e) -> "delete_vertex(g, " ^ (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode e)) ^ ");"
 
 
   (*| Formal(f) -> (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode f))*)

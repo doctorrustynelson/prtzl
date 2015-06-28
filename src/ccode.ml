@@ -22,6 +22,8 @@ type cstmt =
 |   While of cstmt list * cstmt list 
 |   Return of cstmt list
 | 	Insert of cstmt list
+|   Query of cstmt list 
+| 	Delete of cstmt list
 
 type prog = {
 	text : cstmt array;

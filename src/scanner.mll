@@ -14,7 +14,7 @@ rule token = parse
 | '[' { LBRACKET }				| ']' { RBRACKET }
 (*| '{' { LBRACE }				| '}' { RBRACE }*)
 | "<+" { LINSERT }				| "+>" { RINSERT }
-| "<_" { LDELETE }				| "_>" { RDELETE }	
+| "<-" { LDELETE }				| "->" { RDELETE }	
 | "<?" { LQUERY }				| "?>" { RQUERY }
 | "Number" { NUMBER }			| "String" { STRING }
 | "Vertex" { VERTEX }			| "Edge" { EDGE }
