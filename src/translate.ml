@@ -160,39 +160,61 @@ let rec string_of_ccode (ty, cs) =
           |   List  -> "struct list* "
           |   Void  -> "void ")
   | Binop((ty1,e1),op,(ty2,e2)) -> (match op with
-            Add   -> (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty1, x) ) e1) )
-                   ^ " + " ^ 
-                   (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty2, x) ) e2) )
-          |   Sub   -> (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty1, x) ) e1) ) 
-                   ^ " - " ^ 
-                   (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty2, x) ) e2) )
-          |   Mul   -> (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty1, x) ) e1) ) 
-                   ^ " * " ^ 
-                   (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty2, x) ) e2) )
-          |   Div   -> (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty1, x) ) e1) ) 
-                   ^ " / "  ^ 
-                   (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty2, x) ) e2) )
-          |   Equal   -> (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty1, x) ) e1) ) 
-                   ^ " == " ^ 
-                   (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty2, x) ) e2) )
-          |   Neq   -> (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty1, x) ) e1) ) 
-                   ^ " != " ^ 
-                   (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty2, x) ) e2) )
-          |   Less  -> (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty1, x) ) e1) ) 
-                   ^ " < " ^ 
-                   (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty2, x) ) e2) )
-          |   Leq   -> (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty1, x) ) e1) ) 
-                   ^ " <= " ^ 
-                   (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty2, x) ) e2) )
-          |   Greater -> (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty1, x) ) e1) ) 
-                   ^ " > " ^ 
-                   (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty2, x) ) e2) )
-          |   Geq   -> (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty1, x) ) e1) ) 
-                   ^ " >= "  ^ 
-                   (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty2, x) ) e2) )
-          |   Concat  -> (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty1, x) ) e1) ) 
-                   ^ " ^ " ^ 
-                   (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty2, x) ) e2) )
+              Add   ->  if(ty1 = "Number" && ty2 = "Number") then
+                          (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty1, x) ) e1) )
+                          ^ " + " ^ 
+                          (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty2, x) ) e2) )
+                        else raise (ParseError "+ operator only applies to Number" )
+          |   Sub   ->  if(ty1 = "Number" && ty2 = "Number") then
+                          (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty1, x) ) e1) ) 
+                          ^ " - " ^ 
+                          (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty2, x) ) e2) )
+                        else raise (ParseError "- operator only applies to Number" )
+          |   Mul   ->  if(ty1 = "Number" && ty2 = "Number") then
+                          (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty1, x) ) e1) ) 
+                          ^ " * " ^ 
+                          (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty2, x) ) e2) )
+                        else raise (ParseError "* operator only applies to Number" )
+          |   Div   ->  if(ty1 = "Number" && ty2 = "Number") then
+                          (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty1, x) ) e1) ) 
+                          ^ " / "  ^ 
+                          (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty2, x) ) e2) )
+                        else raise (ParseError "/ operator only applies to Number" )
+          |   Equal ->  if(ty1 = "Number" && ty2 = "Number") then
+                          (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty1, x) ) e1) ) 
+                          ^ " == " ^ 
+                          (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty2, x) ) e2) )
+                        else raise (ParseError "== operator only applies to Number" )
+          |   Neq   ->  if(ty1 = "Number" && ty2 = "Number") then
+                          (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty1, x) ) e1) ) 
+                          ^ " != " ^ 
+                          (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty2, x) ) e2) )
+                        else raise (ParseError "!= operator only applies to Number" )
+          |   Less  ->  if(ty1 = "Number" && ty2 = "Number") then
+                          (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty1, x) ) e1) ) 
+                          ^ " < " ^ 
+                          (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty2, x) ) e2) )
+                        else raise (ParseError "< operator only applies to Number" )
+          |   Leq   ->  if(ty1 = "Number" && ty2 = "Number") then
+                          (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty1, x) ) e1) ) 
+                          ^ " <= " ^ 
+                          (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty2, x) ) e2) )
+                        else raise (ParseError "<= operator only applies to Number" )
+          |   Greater ->  if(ty1 = "Number" && ty2 = "Number") then
+                            (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty1, x) ) e1) ) 
+                            ^ " > " ^ 
+                            (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty2, x) ) e2) )
+                          else raise (ParseError "> operator only applies to Number" )
+          |   Geq   ->  if(ty1 = "Number" && ty2 = "Number") then
+                          (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty1, x) ) e1) ) 
+                          ^ " >= "  ^ 
+                          (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty2, x) ) e2) )
+                        else raise (ParseError ">= operator only applies to Number" )
+          |   Concat  ->  if(ty1 = "String" && ty2 = "String") then
+                            "cat(" ^ (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty1, x) ) e1) ) 
+                            ^ ", " ^ 
+                            (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty2, x) ) e2) ) ^ ")"
+                          else raise (ParseError "^ operator only applies to constant strings" )
         )
   | Assign(id, (ty,value))  -> (match value with
             []      -> id ^ ";"
