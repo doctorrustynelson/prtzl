@@ -11,6 +11,14 @@ let rec comparelist v1 v2 = match v1, v2 with
 | _, []        -> false
 | x::xs, y::ys -> x = y && comparelist xs ys
 
+let standardLibrary = [ ["print_number";  "Void";   "Number"]; 
+                        ["print_string";  "Void";   "String"];
+                        ["print_vertex";  "Void";   "Vertex"];
+                        ["print_edge";    "Void";   "Edge"  ];
+                        ["link";          "Number"; "Vertex"; "Vertex"; "Number"];
+                        ["bi_link";       "Number"; "Vertex"; "Vertex"; "Number"];
+                      ]
+
 let string_of_datatype = function
     Number -> "Number"
   | String -> "String"
@@ -43,9 +51,11 @@ let rec expr (e, sm, fm, lm, fname) =
         | Keyword k -> ("Void", [Keyword k])
         | Not(n) -> (fst (expr (n, sm, fm, lm, fname)), [Not (snd (expr (n, sm, fm, lm, fname) ))])
         | Neg(n) -> (fst (expr (n, sm, fm, lm, fname)), [Neg (snd (expr (n, sm, fm, lm, fname) ))])
-        | Call(s, el) -> if( comparelist (List.tl (StringMap.find s fm) ) (List.map (fun x -> fst (expr(x,sm, fm, lm, fname)) ) el ) ) 
-                  then ( (List.hd (StringMap.find s fm) ), [Call (s, (List.concat (List.map (fun x -> snd (expr(x,sm, fm, lm, fname)) ) el)))])
-                  else raise (ParseError "arguement types do not match")
+        | Call(s, el) ->  if(StringMap.mem s fm) then
+                            (if( comparelist (List.tl (StringMap.find s fm) ) (List.map (fun x -> fst (expr(x,sm, fm, lm, fname)) ) el ) ) 
+                            then ( (List.hd (StringMap.find s fm) ), [Call (s, (List.concat (List.map (fun x -> snd (expr(x,sm, fm, lm, fname)) ) el)))])
+                            else raise (ParseError ("In function "^s^", arguement types do not match") ))
+                          else raise (ParseError ("function " ^ s ^ " not defined") )
         | List(el) -> ("List", [List ("", (List.concat (List.map (fun x ->  snd (expr (x, sm, fm, lm, fname) ) ) el)))])
         | Mem(id, i) -> ("",[Mem (id, i)])
         | ListAssign(id, i, e) -> ("", [ListAssign (id, i, (snd (expr (e, sm, fm, lm, fname) ) ) )])
@@ -114,9 +124,10 @@ let translate (globals, statements, functions) =
       else StringMap.add var.vname (string_of_datatype var.vtype) m) StringMap.empty varlist
 
   and functionmap fdecls =
-    List.fold_left
+    let fmap = List.fold_left
       (fun m fdecl -> if(StringMap.mem fdecl.fname m) then raise (ParseError ("function " ^ fdecl.fname ^ " already declared") )
       else StringMap.add fdecl.fname ([string_of_datatype fdecl.rtype] @ (List.map (fun x -> (string_of_datatype x.ftype) ) fdecl.formals) ) m) StringMap.empty fdecls
+    in  List.fold_left (fun m x -> StringMap.add (List.hd x) (List.tl x) m) fmap standardLibrary
 
   and localmap fdecls = 
     let perfunction formals = List.fold_left
@@ -134,7 +145,7 @@ let translate (globals, statements, functions) =
       
 
   in [Keyword "#include \"prtzl.h\"\r\nstruct graph* g;\r\n"] @
-     List.concat (List.map (fun x -> translatefunc (x, (map globals), (functionmap functions), (localmap functions), x.fname ) ) functions ) @
+     List.concat (List.map (fun x -> translatefunc (x, (map globals), (functionmap functions), (localmap functions), x.fname ) ) (List.rev functions) ) @
      [Main] @ 
      List.concat (List.map (fun x -> translatestg (x, (map globals), (functionmap functions), StringMap.empty, "" ) ) (List.rev globals) ) @ 
      translatestm ((List.rev statements), (map globals), (functionmap functions), StringMap.empty, "" ) 
@@ -246,7 +257,7 @@ let rec string_of_ccode (ty, cs) =
   | If(s)     -> "if(" ^ (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty, x) ) s)) ^ ")"
   | Then(s)   -> "{\r\n\t" ^ (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty, x) ) s)) ^ "\r\n}"
   | Else(s)   -> "else\r\n{\r\n\t" ^ (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty, x) ) s)) ^ "\r\n}"
-  | Elseif(e, s)-> "elseif(" ^ (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty, x) ) e)) ^ ")\r\n{\r\n\t" ^ (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty, x) ) s)) ^ "\r\n}"
+  | Elseif(e, s)-> "else if(" ^ (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty, x) ) e)) ^ ")\r\n{\r\n\t" ^ (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty, x) ) s)) ^ "\r\n}"
   | While(e, s) -> "while(" ^(List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty, x) ) e)) ^ ")" ^
              "{\r\n\t" ^ (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty, x) ) s)) ^ "\r\n}"
   | Return(s)   -> "return " ^ (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty, x) ) s)) ^ ";"
