@@ -36,3 +36,5 @@ void print_string(char*);
 void print_vertex(struct node*);
 
 void print_edge(struct node*);
+
+char* cat(char*, char*);

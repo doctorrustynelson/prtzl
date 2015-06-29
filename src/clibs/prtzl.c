@@ -1,6 +1,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "prtzl.h"
 
@@ -147,6 +148,15 @@ void print_edge(struct node* e){
 		(char*) get_node_property(get_node_property(e, "dest"), "label"),
 		*((double*) get_node_property(e, "weight")));
 
+}
+
+char* cat(char* a, char* b){
+
+	int len = strlen(a) + strlen(b) + 2;
+	char* ret = (char*) malloc(sizeof(char) * len);
+	sprintf(ret,"%s%s", a, b);
+
+	return ret;
 }
 
 
