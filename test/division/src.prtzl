@@ -1,0 +1,2 @@
+Number v = 6 / 2;
+print_number(v);

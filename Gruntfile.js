@@ -14,7 +14,7 @@ module.exports = function (grunt) {
 			test: {
 				expand: true,
 				cwd: 'test',
-				src: [ '*/compiled.c', '*/compiled.exe', '*/result.out' ]
+				src: [ '*/compiled.c', '*/compiled.exe', '*/result' ]
 			},
 			dist: {
 				src: 'compiler.exe'
@@ -101,29 +101,41 @@ module.exports = function (grunt) {
 			options: {
 				force: true
 			},
-			hello_out: [ 'test/hello/expected.out', 'test/hello/result.out' ],
-			hello_c: [ 'test/hello/expected.c', 'test/hello/compiled.c' ],
-			empty_c: [ 'test/empty/expected.c', 'test/empty/compiled.c' ]
+			/* Arithmatic */
+			addition: {},
+			subtraction: {},
+			multiplication: {},
+			division: {},
+			'pemdas-1': {},
+			'pemdas-2': {},
+			'pemdas-3': {},
+			
+			/* Print Statements */
+			'hello-world': {},
+			'hello-number': {},
+			'hello-vertex': {},
+			
+			/* Base */
+			empty: {}
 		}
 	});
 	
 	grunt.registerMultiTask( 'diff', function( ){
 		var done = this.async( );
-		var srcfiles = this.filesSrc;
+		var test = this.target;
 		var success = true;
 		
-		var src = srcfiles.shift();
+		var src = path.join( 'test', test, 'expected' );
 		var expected = grunt.file.read( src ).replace( /\s+/g, ' ' ).trim();
 		
-		srcfiles.forEach( function( f ){
-			var actual = grunt.file.read( f ).replace( /\s+/g, ' ' ).trim();
-			if( expected != actual ){
-				grunt.log.writeln("Error: " + f + " did not match " + src + ".");
-				grunt.log.writeln("Expected: \n\t" + grunt.file.read( src ).split("\n").join("\n\t"));
-				grunt.log.writeln("Actual: \n\t" + grunt.file.read( f ).split("\n").join("\n\t"));
-				success = false;
-			}
-		})
+		var f = path.join( 'test', test, 'result' );
+		var actual = grunt.file.read( f ).replace( /\s+/g, ' ' ).trim();
+		if( expected != actual ){
+			grunt.log.writeln("Error: " + f + " did not match " + src + ".");
+			grunt.log.writeln("Expected: \n\t" + grunt.file.read( src ).split("\n").join("\n\t"));
+			grunt.log.writeln("Actual: \n\t" + grunt.file.read( f ).split("\n").join("\n\t"));
+			success = false;
+		}
 		
 		done(success)
 	} );
@@ -217,7 +229,7 @@ module.exports = function (grunt) {
 		}
 		
 		srcfiles.forEach( function( file ){
-			var command = path.join( file, 'compiled.exe' ) + ' > ' + path.join( file, 'result.out' ); 
+			var command = path.join( file, 'compiled.exe' ) + ' > ' + path.join( file, 'result' ); 
 			exec( command, function( err, stdout, stderr ){
 				grunt.log.writeln( command );
 				grunt.log.writeln( '\tstdout: ' + stdout.split( '\n' ).join( '\n\t\t' ) );

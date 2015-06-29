@@ -1,0 +1,2 @@
+Number v = 2.17 - 1;
+print_number(v);

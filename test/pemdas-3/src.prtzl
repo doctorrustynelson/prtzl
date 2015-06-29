@@ -1,0 +1,2 @@
+Number v = ( 25 - 3 ) / ( 3 - 1 );
+print_number(v);

@@ -1,0 +1,5 @@
+Number one = 1;
+
+if(one == 1)
+	print_string( "Equals 1" );
+endif
