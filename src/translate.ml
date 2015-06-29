@@ -44,9 +44,17 @@ let rec expr (e, sm, fm, lm, fname) =
         | Assign (id, value) -> if(fst (expr(value, sm, fm, lm, fname) ) = "" ) (*List type work around*)
                       then ( fst (expr(value, sm, fm, lm, fname) ), [Assign (id, (expr(value, sm, fm, lm, fname) ))])
                       else(
-                        if(fst (expr(value, sm, fm, lm, fname) ) = (StringMap.find id sm) )
-                        then ( fst (expr(value, sm, fm, lm, fname) ), [Assign (id, (expr(value, sm, fm, lm, fname) ))])
-                        else raise (ParseError "type not match")
+                        if(fname = "")(*main*)
+                        then(
+                          if(fst (expr(value, sm, fm, lm, fname) ) = (StringMap.find id sm) )
+                          then ( fst (expr(value, sm, fm, lm, fname) ), [Assign (id, (expr(value, sm, fm, lm, fname) ))])
+                          else raise (ParseError "type not match")
+                        )
+                        else(
+                          if(fst (expr(value, sm, fm, lm, fname) ) = (StringMap.find id (StringMap.find fname lm) ) )
+                          then ( fst (expr(value, sm, fm, lm, fname) ), [Assign (id, (expr(value, sm, fm, lm, fname) ))])
+                          else raise (ParseError "type not match")
+                        )
                       )
         | Keyword k -> ("Void", [Keyword k])
         | Not(n) -> (fst (expr (n, sm, fm, lm, fname)), [Not (snd (expr (n, sm, fm, lm, fname) ))])
@@ -80,10 +88,11 @@ let rec expr (e, sm, fm, lm, fname) =
                              then ("Void", [PropertyAssign (id, p, (snd (expr (e, sm, fm, lm, fname) ) ) )])
                              else raise (ParseError (id ^ " not declared"))
         | Noexpr -> ("Void", [])
+    
 
 let rec stmt (st, sm ,fm, lm, fname)  = 
       match st with
-      Block sl     -> List.concat (List.map (fun x -> stmt (x,sm, fm, lm, fname) ) sl )
+          Block sl     -> List.concat (List.map (fun x -> stmt (x,sm, fm, lm, fname) ) sl )
         | Expr e       -> snd(expr (e, sm, fm, lm, fname)) @ [Keyword ";"]
         | If (e1, e2, e3, e4) -> (match e3 with
                   [] -> (match e4 with 
@@ -110,7 +119,8 @@ let translate (globals, statements, functions) =
       [Keyword "("] @ 
       arg fdecl.formals @ 
       [Keyword ")\r\n{\r\n"] @
-      stmt ((Block fdecl.body), sm, fm, lm, fname) @ [Keyword "\r\n}\r\n"](*@  (* Body *)
+      List.concat (List.map (fun x -> [Datatype x.vtype] @ snd(expr (x.value, sm, fm, lm, fdecl.fname))) fdecl.locals ) @
+      (stmt ((Block fdecl.body), sm, fm, lm, fname)) @ [Keyword "\r\n}\r\n"](*@  (* Body *)
       [Ret 0]   (* Default = return 0 *)*)
   and translatestm (stm, sm, fm, lm, fname) = 
     stmt ((Block stm), sm, fm, lm, fname)
