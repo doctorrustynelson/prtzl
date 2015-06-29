@@ -78,11 +78,11 @@ arguement_list:
 | arguement_list COMMA arguement 	 { $3 :: $1 }
 
 arguement:
-  NUMBER ID     { {ftype = Number; fname = $2} }
-| STRING ID     { {ftype = String; fname = $2} }
-| VERTEX ID     { {ftype = Vertex; fname = $2} }
-| EDGE ID       { {ftype = Edge; fname = $2} }
-| LIST ID       { {ftype = List; fname = $2} }
+  NUMBER ID     { {ftype = Number; frname = $2} }
+| STRING ID     { {ftype = String; frname = $2} }
+| VERTEX ID     { {ftype = Vertex; frname = $2} }
+| EDGE ID       { {ftype = Edge; frname = $2} }
+| LIST ID       { {ftype = List; frname = $2} }
 
 stmt_list:
 /* nothing */		{ [] }
@@ -127,6 +127,7 @@ expr:
 | LBRACKET list RBRACKET { List(List.rev $2) }
 | LPAREN expr RPAREN { $2 }
 | ID LPAREN list RPAREN { Call($1, List.rev $3) } 
+| ID DOTOPT STR    { Property($1, $3) }
 | INT 				  { Int($1) } 
 | LITERAL		   	{ Num($1) }
 | STR           { Str($1) }
