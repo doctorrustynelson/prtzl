@@ -21,3 +21,5 @@ endfunc
 
 String hello = "hello ";
 String world = "world";
+
+String hello_world = useful_function(hello, world);
