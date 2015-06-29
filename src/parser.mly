@@ -127,7 +127,7 @@ expr:
 | ID LBRACKET INT RBRACKET ASSIGN expr    { ListAssign($1, $3, $6) }
 | ID LBRACKET INT RBRACKET { Mem($1, $3) }
 | LBRACKET list RBRACKET { List(List.rev $2) }
-| LPAREN expr RPAREN { $2 }
+| LPAREN expr RPAREN { AddParen($2) }
 | ID LPAREN list RPAREN { Call($1, List.rev $3) } 
 | ID DOTOPT ID    { Property($1, $3) }
 | ID DOTOPT ID ASSIGN expr   { PropertyAssign($1, $3, $5) }

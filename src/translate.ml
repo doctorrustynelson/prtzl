@@ -87,6 +87,7 @@ let rec expr (e, sm, fm, lm, fname) =
         | PropertyAssign(id, p, e) -> if(StringMap.mem id sm) 
                              then ("Void", [PropertyAssign (id, p, (snd (expr (e, sm, fm, lm, fname) ) ) )])
                              else raise (ParseError (id ^ " not declared"))
+        | AddParen(e) -> ((fst (expr (e, sm, fm, lm, fname) ) ), [AddParen (snd (expr (e, sm, fm, lm, fname) ) )])
         | Noexpr -> ("Void", [])
     
 
@@ -276,6 +277,7 @@ let rec string_of_ccode (ty, cs) =
   | Delete(e)   -> "delete_vertex(g, " ^ (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty, x) ) e)) ^ ")"
   | Property(id, p) -> "get_node_property("^ id ^", \"" ^ p ^ "\")"
   | PropertyAssign(id, p, e) -> "put_node_property(" ^ id ^ ", \"" ^ p ^ "\", " ^ (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty, x) ) e)) ^ ")"
+  | AddParen(e) -> "(" ^ (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty, x) ) e)) ^ ")"
 
 
   (*| Formal(f) -> (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode f))*)

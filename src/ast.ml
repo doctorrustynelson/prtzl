@@ -25,6 +25,7 @@ type expr =
      | Edge of string
      | Property of string * string 
      | PropertyAssign of string * string * expr
+     | AddParen of expr
      | Noexpr
 
 

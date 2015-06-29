@@ -28,6 +28,7 @@ type cstmt =
 | 	Delete of cstmt list
 | 	Property of string * string
 | 	PropertyAssign of string * string * cstmt list
+| 	AddParen of cstmt list
 
 type prog = {
 	text : cstmt array;
