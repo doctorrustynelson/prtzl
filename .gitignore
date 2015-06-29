@@ -29,3 +29,4 @@ build
 *.exe
 compiled.c
 compiled.out
+result.out
