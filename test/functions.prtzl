@@ -1,0 +1,23 @@
+
+
+Number one()
+	return 1;
+endfunc
+
+Number add_one(Number x)
+	return x + one();
+endfunc
+
+Number z = 3.1;
+
+Number y = add_one(z);
+
+Number w = add_one(3.1415);
+
+String useful_function(String a, String b)
+	String ret = a ^ b;
+	return ret;
+endfunc
+
+String hello = "hello ";
+String world = "world";
