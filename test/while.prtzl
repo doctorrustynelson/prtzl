@@ -1,0 +1,24 @@
+
+
+Number i = 0;
+
+List my_list = [];
+
+while (i < 5) do
+
+	my_list[i] = "loop";
+	i = i + 1;
+
+endwhile
+
+
+i = 4;
+String s;
+
+while (i >= 0) do
+
+	s = my_list[i];
+	print_string(s);
+	i = i - 1;
+
+endwhile

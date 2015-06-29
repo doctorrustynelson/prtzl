@@ -1,0 +1,16 @@
+
+
+Number one = 1;
+
+String x;
+
+if(one == 1)
+	x = "a";
+elseif(one >= 2)
+	x = "b";
+elseif(one < 3)
+	x = "c";
+endelseif
+else
+	x = "d";
+endif

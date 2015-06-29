@@ -1,0 +1,9 @@
+
+
+Vertex v = <+ "v" +>;
+
+v.key = "value";
+
+String s = v.key;
+
+print_string(s);

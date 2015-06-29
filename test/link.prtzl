@@ -1,0 +1,15 @@
+
+
+Vertex a = <+ "a" +>;
+Vertex b = <+ "b" +>;
+Vertex c = <+ "c" +>;
+
+link(a, b, 1);
+link(a, c, 2);
+
+bi_link(b, c, 3);
+
+print_vertex(a);
+print_vertex(b);
+print_vertex(c);
+

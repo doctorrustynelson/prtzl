@@ -15,8 +15,7 @@ Number y = add_one(z);
 Number w = add_one(3.1415);
 
 String useful_function(String a, String b)
-	String ret = a ^ b;
-	return ret;
+	return a ^ b;
 endfunc
 
 String hello = "hello ";
