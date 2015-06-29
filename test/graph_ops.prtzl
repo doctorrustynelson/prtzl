@@ -1,0 +1,7 @@
+String houston = "houston";
+String dallas = "dallas";
+
+Vertex v = <+ houston +>;
+Vertex c = <+ "austin" +>;
+<? dallas ?>;
+<- houston ->;
