@@ -95,7 +95,7 @@ let rec stmt (st, sm ,fm, lm, fname)  =
           Block sl     -> List.concat (List.map (fun x -> stmt (x,sm, fm, lm, fname) ) sl )
         | Expr e       -> snd(expr (e, sm, fm, lm, fname)) @ [Keyword ";"]
         | If (e1, e2, e3, e4) -> (match e3 with
-                  [] -> (match e4 with 
+                  [Block([])] -> (match e4 with 
                       Block([]) -> [If (snd(expr (e1, sm, fm, lm, fname) ) )] @ [Then (stmt (e2, sm, fm, lm, fname) )]
                     |   _ -> [If (snd (expr (e1, sm, fm, lm, fname) ) )] @ [Then (stmt (e2, sm, fm, lm, fname) )] @ [Else (stmt (e4, sm, fm, lm, fname) )] 
                   )
