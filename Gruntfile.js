@@ -14,7 +14,7 @@ module.exports = function (grunt) {
 			test: {
 				expand: true,
 				cwd: 'test',
-				src: [ '*/compiled.c', '*/compiled.exe' ]
+				src: [ '*/compiled.c', '*/compiled.exe', '*/result.out' ]
 			},
 			dist: {
 				src: 'compiler.exe'
@@ -172,7 +172,7 @@ module.exports = function (grunt) {
 					return completed( );
 				}
 				
-				var gcc_command = 'gcc -o ' + path.join( file, 'compiled.exe') + ' ' + path.join( file, 'compiled.c') + ' ' + c_libs; 
+				var gcc_command = 'gcc -o ' + path.join( file, 'compiled.exe') + ' -I ' + path.join( 'build', 'clibs' ) + ' ' + path.join( file, 'compiled.c') + ' ' + c_libs; 
 				exec( gcc_command, function( err, stdout, stderr ){
 					grunt.log.writeln( gcc_command );
 					grunt.log.writeln( '\tstdout: ' + stdout.split( '\n' ).join( '\n\t\t' ) );
