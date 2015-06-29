@@ -4,6 +4,7 @@ type cstmt =
 |	Int	 of int
 |	Id 	 of string
 |   Vertex of string
+| 	Edge of string 
 | 	Keyword of string
 |   Main	
 | 	Endmain 
@@ -25,6 +26,7 @@ type cstmt =
 | 	Insert of cstmt list
 |   Query of cstmt list 
 | 	Delete of cstmt list
+| 	Property of string * string
 
 type prog = {
 	text : cstmt array;

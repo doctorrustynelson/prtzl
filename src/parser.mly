@@ -64,7 +64,7 @@ vdecl:
   NUMBER ID SEMI    { {vtype=Number; vname=$2; value=Assign($2, Num(0.))} }
 | STRING ID SEMI    { {vtype=String; vname=$2; value=Assign($2, Str("\"\"") )} }
 | VERTEX ID SEMI    { {vtype=Vertex; vname=$2; value=Assign($2, Vertex("") )} }
-| EDGE ID   SEMI    { {vtype=  Edge; vname=$2; value=Assign($2, Noexpr )} }
+| EDGE ID   SEMI    { {vtype=  Edge; vname=$2; value=Assign($2, Edge("") )} }
 | LIST ID   SEMI    { {vtype=  List; vname=$2; value=Assign($2, List([]))} }
 | NUMBER ID ASSIGN expr SEMI { {vtype=Number; vname=$2; value=Assign($2, $4)} }
 | STRING ID ASSIGN expr SEMI { {vtype=String; vname=$2; value=Assign($2, $4)} }
@@ -127,7 +127,7 @@ expr:
 | LBRACKET list RBRACKET { List(List.rev $2) }
 | LPAREN expr RPAREN { $2 }
 | ID LPAREN list RPAREN { Call($1, List.rev $3) } 
-| ID DOTOPT STR    { Property($1, $3) }
+| ID DOTOPT ID    { Property($1, $3) }
 | INT 				  { Int($1) } 
 | LITERAL		   	{ Num($1) }
 | STR           { Str($1) }

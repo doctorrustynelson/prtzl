@@ -22,6 +22,7 @@ type expr =
      | Call of string * expr list
      | Keyword of string
      | Vertex of string
+     | Edge of string
      | Property of string * string 
      | Noexpr
 
