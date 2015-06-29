@@ -18,6 +18,7 @@ type expr =
      | Query of expr
      | List of expr list
      | Mem of string * int 
+     | ListAssign of string * int * expr
      | Call of string * expr list
      | Keyword of string
      | Vertex of string

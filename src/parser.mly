@@ -122,6 +122,7 @@ expr:
 | LDELETE expr RDELETE { Delete($2) }
 | LQUERY expr  RQUERY  { Query($2) }
 | ID ASSIGN expr   	{ Assign($1, $3) }
+| ID LBRACKET INT RBRACKET ASSIGN expr    { ListAssign($1, $3, $6) }
 | ID LBRACKET INT RBRACKET { Mem($1, $3) }
 | LBRACKET list RBRACKET { List(List.rev $2) }
 | LPAREN expr RPAREN { $2 }

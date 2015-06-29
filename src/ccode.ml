@@ -15,6 +15,7 @@ type cstmt =
 |  	Call of string * cstmt list 
 |   List of string * cstmt list
 |   Mem of string * int
+| 	ListAssign of string * int * cstmt list
 |  	If of cstmt list
 |  	Then of cstmt list
 | 	Else of cstmt list
