@@ -27,6 +27,7 @@ type cstmt =
 |   Query of cstmt list 
 | 	Delete of cstmt list
 | 	Property of string * string
+| 	PropertyAssign of string * string * cstmt list
 
 type prog = {
 	text : cstmt array;

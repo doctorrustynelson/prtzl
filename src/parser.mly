@@ -43,18 +43,20 @@ fdecl:
     	formals = List.rev $4;
     	locals  = List.rev $6;
     	body    = List.rev $7 } }
-/*| VERTEX ID LPAREN arguement_list RPAREN vdecl_list stmt_list 
+| VERTEX ID LPAREN arguement_list RPAREN vdecl_list stmt_list ENDFUNC
   	{ { 
+      rtype   = Vertex;
   		fname   = $2;
     	formals = List.rev $4;
     	locals  = List.rev $6;
     	body    = List.rev $7 } }
-| EDGE ID LPAREN arguement_list RPAREN vdecl_list stmt_list 
+| EDGE ID LPAREN arguement_list RPAREN vdecl_list stmt_list ENDFUNC
   	{ { 
+      rtype   = Edge;
   		fname   = $2;
     	formals = List.rev $4;
     	locals  = List.rev $6;
-    	body    = List.rev $7 } }*/
+    	body    = List.rev $7 } }
 
 vdecl_list:
   /*nothing*/	{ [] }
@@ -128,6 +130,7 @@ expr:
 | LPAREN expr RPAREN { $2 }
 | ID LPAREN list RPAREN { Call($1, List.rev $3) } 
 | ID DOTOPT ID    { Property($1, $3) }
+| ID DOTOPT ID ASSIGN expr   { PropertyAssign($1, $3, $5) }
 | INT 				  { Int($1) } 
 | LITERAL		   	{ Num($1) }
 | STR           { Str($1) }

@@ -66,7 +66,9 @@ let rec expr (e, sm, fm, lm, fname) =
                              | _ -> ("", [Property(id, p)])
                              )
                              else raise (ParseError (id ^ " not declared"))
-
+        | PropertyAssign(id, p, e) -> if(StringMap.mem id sm) 
+                             then ("Void", [PropertyAssign (id, p, (snd (expr (e, sm, fm, lm, fname) ) ) )])
+                             else raise (ParseError (id ^ " not declared"))
         | Noexpr -> ("Void", [])
 
 let rec stmt (st, sm ,fm, lm, fname)  = 
@@ -79,7 +81,7 @@ let rec stmt (st, sm ,fm, lm, fname)  =
                     |   _ -> [If (snd (expr (e1, sm, fm, lm, fname) ) )] @ [Then (stmt (e2, sm, fm, lm, fname) )] @ [Else (stmt (e4, sm, fm, lm, fname) )] 
                   )
                 |   (Elseif(e,s)) ::tail -> [If (snd (expr (e1, sm, fm, lm, fname) ) )] @ [Then (stmt (e2, sm, fm, lm, fname) )] @ [Elseif ( (snd (expr (e, sm, fm, lm, fname))), stmt (s, sm, fm, lm, fname) )] @ List.concat (List.map (fun x -> stmt (x,sm, fm, lm, fname) ) tail ) @ [Else (stmt (e4, sm, fm, lm, fname) )]
-                |   _ -> raise (ParseError "caught parse error")
+                |   _ -> raise (ParseError "caught parse error in if")
                 )(*[Keyword "if "] @ expr e1 @ stmt e2 @  List.concat (List.map stmt e3) @ stmt e4*)
         | Elseif(e, s) -> [Elseif ( (snd(expr (e, sm, fm, lm, fname) ) ), (stmt (s, sm, fm, lm, fname) ))]
         | While(e, s) -> [While ( (snd (expr (e, sm, fm, lm, fname) ) ), (stmt (s, sm, fm, lm, fname) ))]
@@ -131,17 +133,17 @@ let translate (globals, statements, functions) =
       m) StringMap.empty fdecls
       
 
-  in (*map globals; (List.concat (List.map (fun x -> x.locals) functions)));*)
+  in [Keyword "#include \"prtzl.h\"\r\nstruct graph* g;\r\n"] @
      List.concat (List.map (fun x -> translatefunc (x, (map globals), (functionmap functions), (localmap functions), x.fname ) ) functions ) @
      [Main] @ 
      List.concat (List.map (fun x -> translatestg (x, (map globals), (functionmap functions), StringMap.empty, "" ) ) (List.rev globals) ) @ 
-     translatestm (statements, (map globals), (functionmap functions), StringMap.empty, "" ) 
+     translatestm ((List.rev statements), (map globals), (functionmap functions), StringMap.empty, "" ) 
      @ [Endmain]
 
 
 let rec string_of_ccode (ty, cs) = 
   match cs with
-  Main -> "#include \"prtzl.h\"\r\nstruct graph* g;\r\nint main() {\r\ng=init_graph();\r\n"
+  Main -> "int main() {\r\ng=init_graph();\r\n"
   | Endmain -> "\r\n\t return 0; \r\n}\r\n" 
   | Strg(l) -> l
   | Id(s) -> s
@@ -211,7 +213,7 @@ let rec string_of_ccode (ty, cs) =
           |   [Query _]   -> id ^ " = " ^ (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty, x) ) value) ) ^ ";"
           |   [Delete _]  -> id ^ " = " ^ (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty, x) ) value) ) ^ ";"
           | [Property _]  -> id ^ " = " ^ (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty, x) ) value) ) ^ ";"
-          |   _ -> raise (ParseError "caught parse error")
+          |   _ -> raise (ParseError "caught parse error in Assign")
           )
   | Not(cl)   -> "!(" ^ (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty, x) ) cl)) ^ ")"
   | Neg(cl)   -> "-(" ^ (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty, x) ) cl)) ^ ")"
@@ -230,6 +232,7 @@ let rec string_of_ccode (ty, cs) =
   | Query(e)  -> "query_vertex(g, " ^ (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty, x) ) e)) ^ ")"
   | Delete(e)   -> "delete_vertex(g, " ^ (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty, x) ) e)) ^ ")"
   | Property(id, p) -> "get_node_property("^ id ^", \"" ^ p ^ "\")"
+  | PropertyAssign(id, p, e) -> "put_node_property(" ^ id ^ ", \"" ^ p ^ "\", " ^ (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty, x) ) e)) ^ ")"
 
 
   (*| Formal(f) -> (List.fold_left (fun x y -> x^y) "" (List.map string_of_ccode f))*)

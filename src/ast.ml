@@ -24,6 +24,7 @@ type expr =
      | Vertex of string
      | Edge of string
      | Property of string * string 
+     | PropertyAssign of string * string * expr
      | Noexpr
 
 
