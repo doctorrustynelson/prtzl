@@ -29,16 +29,25 @@ task :test do
 		name = file.chomp '.prtzl'	
 
 		print "Compiling #{name}.prtzl"
-		system "./compile < #{name}.prtzl > #{name}_test.c"
-		puts '		OK'
+		if system "./compile < #{name}.prtzl > #{name}_test.c"	
+			puts '		OK'
+		else
+			puts '		FAILED'
+		end
 
 		print "Compiling #{name}.c"
-		system "gcc -o #{name}.o #{name}_test.c prtzl.c map.c list.c"
-		puts '		OK'
+		if system "gcc -o #{name}.o #{name}_test.c prtzl.c map.c list.c"
+			puts '		OK'
+		else
+			puts '		FAILED'
+		end
 
 		print "Running #{name}.o"
-		system "./#{name}.o > #{name}_test.out"
-		puts '			OK'
+		if system "./#{name}.o > #{name}_test.out"
+			puts '			OK'
+		else
+			puts '			FAILED'
+		end
 
 		system "diff #{name}.out #{name}_test.out"
 	end
