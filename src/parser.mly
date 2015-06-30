@@ -95,13 +95,13 @@ elseif_list:										/* rules never reduced*/
 | elseif_list elseif	{ $2 :: $1 }
 
 elseif:
-  ELSEIF LPAREN expr RPAREN stmt	{ Elseif($3, $5) }
+  ELSEIF LPAREN expr RPAREN stmt_list	{ Elseif($3, List.rev $5) }
 
 stmt:
   expr SEMI			{ Expr($1) }
-| IF LPAREN expr RPAREN stmt %prec NOELSE ENDIF	{ If($3, $5, [Block([])], Block([]) ) }
-| IF LPAREN expr RPAREN stmt ELSE stmt ENDIF 	{ If($3, $5, [Block([])], $7) }
-| IF LPAREN expr RPAREN stmt elseif_list ENDELSEIF ELSE stmt ENDIF  { If($3, $5, List.rev $6, $9) }
+| IF LPAREN expr RPAREN stmt_list %prec NOELSE ENDIF	{ If($3, List.rev $5, [Block([])], [Block([])] ) }
+| IF LPAREN expr RPAREN stmt_list ELSE stmt_list ENDIF 	{ If($3, List.rev $5, [Block([])], List.rev $7) }
+| IF LPAREN expr RPAREN stmt_list elseif_list ENDELSEIF ELSE stmt_list ENDIF  { If($3, List.rev $5, List.rev $6, List.rev $9) }
 | WHILE LPAREN expr RPAREN DO stmt_list ENDWHILE		{ While($3, List.rev $6) }
 | RETURN expr SEMI	{ Return($2) }
 

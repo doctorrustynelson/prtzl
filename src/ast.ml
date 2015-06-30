@@ -33,8 +33,8 @@ type expr =
 type stmt = 
 	   Block of stmt list
 	 | Expr of expr
-	 | If of expr * stmt * stmt list * stmt
-	 | Elseif of expr * stmt
+	 | If of expr * stmt list * stmt list * stmt list
+	 | Elseif of expr * stmt list
 	 | While of expr * stmt list
 	 | Return of expr
 
