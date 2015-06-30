@@ -65,8 +65,8 @@ let rec expr (e, sm, fm, lm, fname) =
                             else raise (ParseError ("In function "^s^", arguement types do not match") ))
                           else raise (ParseError ("function " ^ s ^ " not defined") )
         | List(el) -> ("List", [List ("", (List.concat (List.map (fun x ->  snd (expr (x, sm, fm, lm, fname) ) ) el)))])
-        | Mem(id, i) -> ("",[Mem (id, i)])
-        | ListAssign(id, i, e) -> ("", [ListAssign (id, i, (snd (expr (e, sm, fm, lm, fname) ) ) )])
+        | Mem(id, e) -> ("",[Mem (id, (snd (expr (e, sm, fm, lm, fname) ) ) )])
+        | ListAssign(id, i, e) -> ("", [ListAssign (id, (snd (expr (i, sm, fm, lm, fname) ) ), (snd (expr (e, sm, fm, lm, fname) ) ) )])
         | Insert(e) -> ("Vertex", [Insert  (snd (expr (e, sm, fm, lm, fname) ) )])
         | Query(e) -> ("Vertex", [Query (snd (expr (e, sm, fm, lm, fname)))])
         | Delete(e) -> ("Number", [Delete (snd (expr (e, sm, fm, lm, fname)))])
@@ -104,7 +104,7 @@ let rec stmt (st, sm ,fm, lm, fname)  =
                 |   _ -> raise (ParseError "caught parse error in if")
                 )(*[Keyword "if "] @ expr e1 @ stmt e2 @  List.concat (List.map stmt e3) @ stmt e4*)
         | Elseif(e, s) -> [Elseif ( (snd(expr (e, sm, fm, lm, fname) ) ), (stmt (s, sm, fm, lm, fname) ))]
-        | While(e, s) -> [While ( (snd (expr (e, sm, fm, lm, fname) ) ), (stmt (s, sm, fm, lm, fname) ))]
+        | While(e, s) -> [While ( (snd (expr (e, sm, fm, lm, fname) ) ), (stmt (Block(s), sm, fm, lm, fname) ) )]
         | Return e     -> [Return ( snd (expr (e, sm, fm, lm, fname) ) ) ]
 
 
@@ -263,8 +263,8 @@ let rec string_of_ccode (ty, cs) =
   | Neg(cl)   -> "-(" ^ (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty, x) ) cl)) ^ ")"
   | Call(s, cl) -> s ^ "(" ^ (List.fold_left (fun x y -> match x with "" -> y | _ -> x^","^y) "" (List.map (fun x -> string_of_ccode (ty, x ) ) cl)) ^ ")"
   | List(id, cl)-> (List.fold_left (fun x y -> match x with "" -> y | _ -> x^","^y) "" (List.map (fun x -> string_of_ccode (ty, x) ) cl))
-  | Mem(id, i)  -> "list_get(" ^ id ^ ", " ^ string_of_int i ^ ")"
-  | ListAssign(id, i, e) -> "list_set(" ^ id ^ ", " ^ (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty, x) ) e)) ^ ", " ^ string_of_int i ^ ")"
+  | Mem(id, e)  -> "list_get(" ^ id ^ ", " ^ (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty, x) ) e)) ^ ")"
+  | ListAssign(id, i, e) -> "list_set(" ^ id ^ ", " ^ (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty, x) ) e)) ^ ", " ^ (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty, x) ) i)) ^ ")"
   | If(s)     -> "if(" ^ (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty, x) ) s)) ^ ")"
   | Then(s)   -> "{\r\n\t" ^ (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty, x) ) s)) ^ "\r\n}"
   | Else(s)   -> "else\r\n{\r\n\t" ^ (List.fold_left (fun x y -> x^y) "" (List.map (fun x -> string_of_ccode (ty, x) ) s)) ^ "\r\n}"

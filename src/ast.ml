@@ -17,8 +17,8 @@ type expr =
      | Delete of expr
      | Query of expr
      | List of expr list
-     | Mem of string * int 
-     | ListAssign of string * int * expr
+     | Mem of string * expr 
+     | ListAssign of string * expr * expr
      | Call of string * expr list
      | Keyword of string
      | Vertex of string
@@ -35,7 +35,7 @@ type stmt =
 	 | Expr of expr
 	 | If of expr * stmt * stmt list * stmt
 	 | Elseif of expr * stmt
-	 | While of expr * stmt
+	 | While of expr * stmt list
 	 | Return of expr
 
 

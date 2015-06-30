@@ -102,7 +102,7 @@ stmt:
 | IF LPAREN expr RPAREN stmt %prec NOELSE ENDIF	{ If($3, $5, [Block([])], Block([]) ) }
 | IF LPAREN expr RPAREN stmt ELSE stmt ENDIF 	{ If($3, $5, [Block([])], $7) }
 | IF LPAREN expr RPAREN stmt elseif_list ENDELSEIF ELSE stmt ENDIF  { If($3, $5, List.rev $6, $9) }
-| WHILE LPAREN expr RPAREN DO stmt ENDWHILE		{ While($3, $6) }
+| WHILE LPAREN expr RPAREN DO stmt_list ENDWHILE		{ While($3, List.rev $6) }
 | RETURN expr SEMI	{ Return($2) }
 
 
@@ -124,8 +124,8 @@ expr:
 | LDELETE expr RDELETE { Delete($2) }
 | LQUERY expr  RQUERY  { Query($2) }
 | ID ASSIGN expr   	{ Assign($1, $3) }
-| ID LBRACKET INT RBRACKET ASSIGN expr    { ListAssign($1, $3, $6) }
-| ID LBRACKET INT RBRACKET { Mem($1, $3) }
+| ID LBRACKET expr RBRACKET ASSIGN expr    { ListAssign($1, $3, $6) }
+| ID LBRACKET expr RBRACKET { Mem($1, $3) }
 | LBRACKET list RBRACKET { List(List.rev $2) }
 | LPAREN expr RPAREN { AddParen($2) }
 | ID LPAREN list RPAREN { Call($1, List.rev $3) } 
