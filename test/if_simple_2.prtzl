@@ -1,0 +1,5 @@
+Number one = 3;
+
+if(one != 1)
+	print_string( "Not Equals 1" );
+endif

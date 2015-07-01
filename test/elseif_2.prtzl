@@ -1,0 +1,9 @@
+Number one = 2;
+
+if(one == 1)
+	print_string( "Equals 1" );
+elseif(one = 2)
+	print_string( "Equals 2 );
+else
+	print_string( "Not Equals 1 or 2" );
+endif

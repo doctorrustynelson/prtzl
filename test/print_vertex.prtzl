@@ -1,0 +1,2 @@
+Vertex v = <+ "vertex" +>;
+print_vertex(v);
