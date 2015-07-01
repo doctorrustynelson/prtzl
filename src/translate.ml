@@ -67,9 +67,15 @@ let rec expr (e, sm, fm, lm, fname) =
         | List(el) -> ("List", [List ("", (List.concat (List.map (fun x ->  snd (expr (x, sm, fm, lm, fname) ) ) el)))])
         | Mem(id, e) -> ("",[Mem (id, (snd (expr (e, sm, fm, lm, fname) ) ) )])
         | ListAssign(id, i, e) -> ("", [ListAssign (id, (snd (expr (i, sm, fm, lm, fname) ) ), (snd (expr (e, sm, fm, lm, fname) ) ) )])
-        | Insert(e) -> ("Vertex", [Insert  (snd (expr (e, sm, fm, lm, fname) ) )])
-        | Query(e) -> ("Vertex", [Query (snd (expr (e, sm, fm, lm, fname)))])
-        | Delete(e) -> ("Number", [Delete (snd (expr (e, sm, fm, lm, fname)))])
+        | Insert(e) ->  if((fst (expr (e, sm, fm, lm, fname) ) ) = "String")
+                        then ("Vertex", [Insert  (snd (expr (e, sm, fm, lm, fname) ) )])
+                        else raise ( ParseError ("arguement of vertex insert has to be string") )
+        | Query(e) ->   if((fst (expr (e, sm, fm, lm, fname) ) ) = "String")
+                        then ("Vertex", [Query (snd (expr (e, sm, fm, lm, fname)))])
+                        else raise ( ParseError ("arguement of vertex query has to be string") )
+        | Delete(e) ->  if((fst (expr (e, sm, fm, lm, fname) ) ) = "String")
+                        then ("Number", [Delete (snd (expr (e, sm, fm, lm, fname)))])
+                        else raise ( ParseError ("arguement of vertex delete has to be string") )
         | Property(id, p) -> if(StringMap.mem id sm) 
                              then(match p with 
                                "in"   -> ("List", [Property (id, p)]) 
@@ -131,7 +137,7 @@ let translate (globals, statements, functions) =
 
   and map varlist = 
     List.fold_left 
-      (fun m var -> if(StringMap.mem var.vname m) then raise (ParseError ("global variable " ^ var.vname ^ " already declared"))
+      (fun m var -> if(StringMap.mem var.vname m) then raise (ParseError ("variable " ^ var.vname ^ " already declared in main"))
       else StringMap.add var.vname (string_of_datatype var.vtype) m) StringMap.empty varlist
 
   and functionmap fdecls =
@@ -149,14 +155,14 @@ let translate (globals, statements, functions) =
       (fun m fdecl -> if(StringMap.mem fdecl.fname m) then raise (ParseError ("function " ^ fdecl.fname ^ " already declared") )
       else StringMap.add fdecl.fname 
 
-      (List.fold_left (fun m local -> if(StringMap.mem local.vname m) then raise (ParseError ("local variable " ^ local.vname ^" already declared") )
+      (List.fold_left (fun m local -> if(StringMap.mem local.vname m) then raise (ParseError ("local variable " ^ local.vname ^" already declared in " ^ fdecl.fname) )
       else StringMap.add local.vname (string_of_datatype local.vtype) m) (perfunction fdecl.formals)  fdecl.locals)
 
       m) StringMap.empty fdecls
       
 
   in [Keyword "#include \"prtzl.h\"\r\nstruct graph* g;\r\n"] @
-     List.concat (List.map (fun x -> translatefunc (x, (map globals), (functionmap functions), (localmap functions), x.fname ) ) (List.rev functions) ) @
+     List.concat (List.map (fun x -> translatefunc (x, StringMap.empty, (functionmap functions), (localmap functions), x.fname ) ) (List.rev functions) ) @
      [Main] @ 
      List.concat (List.map (fun x -> translatestg (x, (map globals), (functionmap functions), StringMap.empty, "" ) ) (List.rev globals) ) @ 
      translatestm ((List.rev statements), (map globals), (functionmap functions), StringMap.empty, "" ) 
