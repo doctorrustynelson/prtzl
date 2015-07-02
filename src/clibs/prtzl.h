@@ -38,3 +38,5 @@ void print_vertex(struct node*);
 void print_edge(struct node*);
 
 char* cat(char*, char*);
+
+double cmp(char*, char*);

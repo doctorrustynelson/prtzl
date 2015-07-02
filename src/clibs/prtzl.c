@@ -27,7 +27,7 @@ struct node* _init_vertex(char* label){
 
 	double* in_degree = (double*) malloc(sizeof(double));
 	*in_degree = 0;
-	
+
 	double* out_degree = (double*) malloc(sizeof(double));
 	*out_degree = 0;
 
@@ -138,7 +138,7 @@ void print_vertex(struct node* v){
 		(char*) get_node_property(v, "label"),
 		*((double*) get_node_property(v, "in_degree")),
 		*((double*) get_node_property(v, "out_degree")));
-		
+
 }
 
 void print_edge(struct node* e){
@@ -159,4 +159,19 @@ char* cat(char* a, char* b){
 	return ret;
 }
 
+double cmp(char* a, char* b){
 
+	if(a == NULL || b == NULL){
+		return 0;
+	}
+
+	int res = strcmp(a, b);
+
+	if(res == 0){
+		return 1;
+	}
+	else{
+		return 0;
+	}
+
+}
