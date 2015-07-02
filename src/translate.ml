@@ -17,6 +17,8 @@ let standardLibrary = [ ["print_number";  "Void";   "Number"];
                         ["print_edge";    "Void";   "Edge"  ];
                         ["link";          "Number"; "Vertex"; "Vertex"; "Number"];
                         ["bi_link";       "Number"; "Vertex"; "Vertex"; "Number"];
+                        ["list_length";   "Number"; "List"  ];
+                        ["cmp";           "Number"; "String"; "String"];
                       ]
 
 let string_of_datatype = function
