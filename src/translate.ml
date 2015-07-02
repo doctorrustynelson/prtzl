@@ -29,7 +29,12 @@ let string_of_datatype = function
   | Void   -> "Void"  
   | List   -> "List"
 
-
+(* expr returns tuple (datatype, cstmt list) *)
+(* e = expression 
+   sm = main variable map
+   fm = function map
+   lm = local variable map
+   fname = function name *)
 let rec expr (e, sm, fm, lm, fname) = 
       match e with
       Str i -> ("String", [Strg i])
@@ -98,7 +103,12 @@ let rec expr (e, sm, fm, lm, fname) =
         | AddParen(e) -> ((fst (expr (e, sm, fm, lm, fname) ) ), [AddParen (snd (expr (e, sm, fm, lm, fname) ) )])
         | Noexpr -> ("Void", [])
     
-
+(* stmt returns cstmt list *)
+(* st = stmt 
+   sm = main variable map
+   fm = function map
+   lm = local variable map
+   fname = function name *)
 let rec stmt (st, sm ,fm, lm, fname)  = 
       match st with
           Block sl     -> List.concat (List.map (fun x -> stmt (x,sm, fm, lm, fname) ) sl )
@@ -115,9 +125,13 @@ let rec stmt (st, sm ,fm, lm, fname)  =
         | While(e, s) -> [While ( (snd (expr (e, sm, fm, lm, fname) ) ), (stmt (Block(s), sm, fm, lm, fname) ) )]
         | Return e     -> [Return ( snd (expr (e, sm, fm, lm, fname) ) ) ]
 
-
+(* translates Ast.program to cstmt list *)
+(* global = main vaiables 
+   statements = main statements
+   functions = function declarations *)
 let translate (globals, statements, functions) =
 
+  (* translate function declaration *)
   let translatefunc (fdecl, sm, fm, lm, fname) =
     let rec arg = function
         [] -> []
@@ -131,24 +145,31 @@ let translate (globals, statements, functions) =
       List.concat (List.map (fun x -> [Datatype x.vtype] @ snd(expr (x.value, sm, fm, lm, fdecl.fname))) fdecl.locals ) @
       (stmt ((Block fdecl.body), sm, fm, lm, fname)) @ [Keyword "\r\n}\r\n"](*@  (* Body *)
       [Ret 0]   (* Default = return 0 *)*)
+
+  (* translatre main statements *)
   and translatestm (stm, sm, fm, lm, fname) = 
     stmt ((Block stm), sm, fm, lm, fname)
 
+  (* translate main variables *)
   and translatestg (glob, sm, fm, lm, fname) = 
     [Datatype glob.vtype] @ snd(expr (glob.value, sm, fm, lm, fname))
 
+  (* create stringMap for main variables to their types *)
   and map varlist = 
     List.fold_left 
       (fun m var -> if(StringMap.mem var.vname m) then raise (ParseError ("variable " ^ var.vname ^ " already declared in main"))
       else StringMap.add var.vname (string_of_datatype var.vtype) m) StringMap.empty varlist
 
+  (* create StringMap for functions to their return types and arguement types *)
   and functionmap fdecls =
     let fmap = List.fold_left
       (fun m fdecl -> if(StringMap.mem fdecl.fname m) then raise (ParseError ("function " ^ fdecl.fname ^ " already declared") )
       else StringMap.add fdecl.fname ([string_of_datatype fdecl.rtype] @ (List.map (fun x -> (string_of_datatype x.ftype) ) fdecl.formals) ) m) StringMap.empty fdecls
     in  List.fold_left (fun m x -> StringMap.add (List.hd x) (List.tl x) m) fmap standardLibrary
 
+  (* create StringMap for functions to map its local variables and types *)
   and localmap fdecls = 
+    (* add formals first and the local variables *)
     let perfunction formals = List.fold_left
         (fun m formal -> if(StringMap.mem formal.frname m) then raise (ParseError ("formal arguement " ^ formal.frname ^ " already declared") ) 
         else StringMap.add formal.frname (string_of_datatype formal.ftype) m) StringMap.empty formals
@@ -170,7 +191,7 @@ let translate (globals, statements, functions) =
      translatestm ((List.rev statements), (map globals), (functionmap functions), StringMap.empty, "" ) 
      @ [Endmain]
 
-
+(* convert cstmt to c code *)
 let rec string_of_ccode (ty, cs) = 
   match cs with
   Main -> "int main() {\r\ng=init_graph();\r\n"
