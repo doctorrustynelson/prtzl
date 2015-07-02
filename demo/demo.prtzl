@@ -4,7 +4,7 @@ Number dfs(Vertex v)
   List out_list;
   Number i;
   Number len;
-  String label;
+  String visited;
   Edge e;
   Vertex dest;
 
@@ -18,9 +18,9 @@ Number dfs(Vertex v)
 
     e = out_list[i];
     dest = e.dest;
-    label = dest.label;
+    visited = dest.visited;
 
-    if( !cmp("test", label) )
+    if( !cmp("true", visited) )
       dfs(dest);
     endif
 

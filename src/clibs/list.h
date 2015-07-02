@@ -1,5 +1,5 @@
 
-
+// linked list data structure
 struct list{
 
 	int size;
@@ -7,12 +7,12 @@ struct list{
 	struct list_entry* tail;
 };
 
+// entry of the linked list
 struct list_entry{
 
 	void* data;
 	struct list_entry* next;
 };
-
 
 struct list* list_init();
 
@@ -36,4 +36,5 @@ int list_remove(struct list*, double);
 // get the list length
 int list_length(struct list*);
 
+// destroy the list
 void list_destroy(struct list*);
