@@ -143,7 +143,7 @@ void print_vertex(struct node* v){
 
 void print_edge(struct node* e){
 
-	printf("src: %s dest: %s weight: %lf",
+	printf("src: %s dest: %s weight: %lf\n",
 		(char*) get_node_property(get_node_property(e, "src"), "label"),
 		(char*) get_node_property(get_node_property(e, "dest"), "label"),
 		*((double*) get_node_property(e, "weight")));
