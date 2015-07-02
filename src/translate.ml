@@ -78,7 +78,7 @@ let rec expr (e, sm, fm, lm, fname) =
         | Delete(e) ->  if((fst (expr (e, sm, fm, lm, fname) ) ) = "String")
                         then ("Number", [Delete (snd (expr (e, sm, fm, lm, fname)))])
                         else raise ( ParseError ("arguement of vertex delete has to be string") )
-        | Property(id, p) -> if(StringMap.mem id sm) 
+        | Property(id, p) -> if(StringMap.mem id sm || (StringMap.mem id (StringMap.find fname lm)) ) 
                              then(match p with 
                                "in"   -> ("List", [Property (id, p)]) 
                              | "out"  -> ("List", [Property (id, p)])
