@@ -92,7 +92,7 @@ let rec expr (e, sm, fm, lm, fname) =
                              | _ -> ("", [Property(id, p)])
                              )
                              else raise (ParseError (id ^ " not declared"))
-        | PropertyAssign(id, p, e) -> if(StringMap.mem id sm) 
+        | PropertyAssign(id, p, e) -> if(StringMap.mem id sm || (StringMap.mem id (StringMap.find fname lm)) ) 
                              then ("Void", [PropertyAssign (id, p, (snd (expr (e, sm, fm, lm, fname) ) ) )])
                              else raise (ParseError (id ^ " not declared"))
         | AddParen(e) -> ((fst (expr (e, sm, fm, lm, fname) ) ), [AddParen (snd (expr (e, sm, fm, lm, fname) ) )])
